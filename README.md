@@ -132,3 +132,8 @@ the world database.
    - the content of `data/client` and of `data/client-surcharges`, keeping
      their folder paths (`Interface\Icons\...`, `Item\ObjectComponents\...`,
      `Spells\...`).
+
+## Licence
+
+GPL-2.0-or-later -- the licence of AzerothCore, which this module is compiled
+into. The full text is in `LICENSE`.
