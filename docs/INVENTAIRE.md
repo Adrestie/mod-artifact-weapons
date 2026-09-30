@@ -1,7 +1,7 @@
 # Inventaire — armes artefacts de Papota_hard
 
 Relevé du 2026-09-28. **Identifiants renumérotés le 2026-09-29 dans la tranche 84 du registre des plages**
-(`ID_RANGES.md`, à la racine du dépôt) : les numéros de ce document sont les nouveaux. Hors numéros et hors
+([`ID_RANGES.md`](https://github.com/Adrestie/WoW-mods/blob/main/ID_RANGES.md) de WoW-mods) : les numéros de ce document sont les nouveaux. Hors numéros et hors
 corrections du §7, les fichiers de `data/` et `src/` sont des extraits fidèles.
 
 ## 1. Sources lues

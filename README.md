@@ -75,7 +75,7 @@ book starts a treasure hunt of its own, which leads to the weapon.
 ### With the installer
 
 Stop the world server and close the game, then run `installer.exe`, the
-WoW-mods installer (`installer/` folder of this repository), and give it this
+WoW-mods installer ([WoW-mods-installer releases](https://github.com/Adrestie/WoW-mods-installer/releases)), and give it this
 folder, or drop the folder on `installer.exe`. Keep the package where you
 downloaded it: the installer refuses to run from your server's `modules`
 folder. Its window asks for the world server folder and the game folder, finds
@@ -93,8 +93,8 @@ Installing puts in place:
   textures, icons, spell effects): into the last custom archive the game reads,
   or into a new `Data\patch-Z.MPQ` when there is none.
 
-The module's identifiers sit in tranche 84 of the repository's register,
-`ID_RANGES.md`. When a server already uses one of them for something else, the
+The module's identifiers sit in tranche 84 of the WoW-mods register,
+[`ID_RANGES.md`](https://github.com/Adrestie/WoW-mods/blob/main/ID_RANGES.md). When a server already uses one of them for something else, the
 installer lists each one and installs nothing.
 
 Then **rebuild the core**, the world server stopped: the installer prints the
