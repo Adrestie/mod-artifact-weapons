@@ -2,6 +2,7 @@
   "format": "wow-mods-installer/1",
   "module": "mod-artifact-weapons",
   "title": "Artifact weapons",
+  "fields": {"game": "required", "worldserver": "required", "sources": "required", "mysql": "required"},
   "signature": ["src/papota_spells.cpp", "src/MP_loader.cpp"],
   "exclude_from_sources": ["data/client", "data/client-surcharges", "data/dbc"],
   "dbc": [
