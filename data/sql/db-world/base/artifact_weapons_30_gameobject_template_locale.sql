@@ -2,4 +2,7 @@
 -- Clause : entry BETWEEN 840000 AND 849999
 DELETE FROM `gameobject_template_locale` WHERE entry BETWEEN 840000 AND 849999;
 INSERT INTO `gameobject_template_locale` (`entry`, `locale`, `name`, `castBarCaption`, `VerifiedBuild`) VALUES
-(840019, 'frFR', 'Vaelthis, Brise-sortilège', '', 0);
+(840019, 'frFR', 'Vaelthis, Brise-sortilège', '', 0),
+(840019, 'deDE', 'Vaelthis, Zauberbrecher', '', 0),
+(840019, 'esES', 'Vaelthis, rompedor de hechizos', '', 0),
+(840019, 'ruRU', 'Вельтис, чаролом', '', 0);
