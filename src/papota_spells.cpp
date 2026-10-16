@@ -521,7 +521,8 @@ class spell_tharnok_ronces_de_givre : public AuraScript
  * npc_xerthul_demon : les cinq gabarits (84200 a 84204) partagent cette IA.
  * Ce sont des gardiens (SummonProperties 61), donc deja non controlables, lies
  * au lanceur, et leurs degats sont credites au proprietaire. Restent a regler
- * ici les points de vie, calques sur ceux du demoniste, et la prise de cible.
+ * ici les points de vie, calques sur ceux du demoniste, les degats, indexes sur
+ * sa puissance des sorts d Ombre, et la prise de cible.
  * ---------------------------------------------------------------------------
  */
 
@@ -533,6 +534,8 @@ enum XerthulSpells
 
 static constexpr uint32 XERTHUL_DEMONS[] = { 84428, 84429, 84430, 84431, 84432 };
 static constexpr float  XERTHUL_PART_PV  = 0.15f;
+static constexpr float  XERTHUL_DEGATS   = 750.0f;   // degats fixes par coup
+static constexpr float  XERTHUL_PART_PS  = 0.15f;    // part de la puissance des sorts d Ombre
 
 class spell_xerthul_nuee_demoniaque : public AuraScript
 {
@@ -582,9 +585,13 @@ struct npc_xerthul_demon : public ScriptedAI
         me->SetMaxHealth(pv);
         me->SetHealth(pv);
 
-        // Degats sentinelles, a calibrer.
-        me->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, 1234.0f);
-        me->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, 1234.0f);
+        // Degats : une part fixe, plus 15 % de la puissance des sorts d Ombre du
+        // demoniste, lue a l invocation (le demon ne suit pas un changement
+        // d equipement pendant sa courte vie).
+        float const degats = XERTHUL_DEGATS
+            + XERTHUL_PART_PS * float(std::max<int32>(0, maitre->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_SHADOW)));
+        me->SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, degats);
+        me->SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, degats);
         me->UpdateDamagePhysical(BASE_ATTACK);
 
         // Il prend la cible du demoniste, ou a defaut celle qu il vise.
