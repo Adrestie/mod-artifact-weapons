@@ -15,7 +15,7 @@ INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84480,0,0,0,0.024,'Vorthalak - Rune - budget x1.5 Mort et decomposition, PA proratisee');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84483,0,0,0,0.006,'Vorthalak - Fievre necrotique - x2 (500 DPS a 1 min)');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84484,0,0,0,0.002,'Vorthalak - Peste necrotique - x2 (500 DPS a 1 min)');
-INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84501,0,0,0.05,0,'Drethmar - Poigne - budget x1.5 Voile mortel, PA 0.15');
+INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84501,0,0,0.08,0,'Drethmar - Poigne - budget x1.5 Voile mortel, PA 0.08');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84522,0.052,0.052,0,0,'Elundor - Eclat lunaire - x1.5 Lune de feu rg max');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84523,0.052,0.052,0,0,'Elundor - Rayon de Soleil - x1.5 Lune de feu rg max');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84541,0,0.000125,0,0,'Liora - Seve - 2200 HPS au plafond de 200 charges');
