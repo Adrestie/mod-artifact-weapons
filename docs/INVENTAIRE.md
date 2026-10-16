@@ -77,7 +77,7 @@ Nombre de lignes par fichier SQL :
 | Affichage d'objet du monde | `GameObjectDisplayInfo.dbc` | 84019 (inexistant, §7) | 0 |
 | Butin de référence | `reference_loot_template` | 84000 | 32 lignes |
 | Rattachements du butin | `creature_loot_template`, `gameobject_loot_template` | lignes `Reference = 84000` ajoutées à 36 tables de boss et 12 de coffres Blizzard de la Citadelle de la Couronne de glace, toutes difficultés, chance de 7 à 100 % | 48 |
-| Scripts de sorts | `spell_script_names` | 12 noms, §5 | 12 |
+| Scripts de sorts | `spell_script_names` | 13 noms, §5 | 14 |
 | IA de créature | `creature_template.ScriptName` | `npc_xerthul_demon` (84200-84204) | 1 |
 
 Les identifiants se recoupent entre espaces : **84002-84034** désigne à la fois des objets, des créatures,
@@ -160,7 +160,7 @@ Sorts : l'arme NN (objet **840NN**) a les numéros **84300 + 20 × (NN − 2)** 
 
 ## 5. C++
 
-`src/papota_spells.cpp` (871 lignes) enregistre 12 scripts de sorts et une IA, tous propres aux armes :
+`src/papota_spells.cpp` (918 lignes) enregistre 13 scripts de sorts et une IA, tous propres aux armes :
 
 | Sort | Script |
 |---|---|
@@ -175,6 +175,7 @@ Sorts : l'arme NN (objet **840NN**) a les numéros **84300 + 20 × (NN − 2)** 
 | 84700 | `spell_salvation_egide` |
 | 84720 | `spell_solareth_souffle` |
 | 84722 | `spell_solareth_zone` |
+| 84780, 84784 | `spell_luminaris_hors_combat` |
 | 84943 | `spell_crocs_ecorchement` |
 | créatures 84200-84204 | `npc_xerthul_demon` |
 

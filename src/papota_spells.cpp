@@ -860,6 +860,45 @@ class spell_solareth_zone : public SpellScript
     }
 };
 
+/*
+ * ---------------------------------------------------------------------------
+ * spell_luminaris_hors_combat — sorts 84780 et 84784, objet 84026
+ *   « Luminaris, Benediction eternelle »
+ *
+ * Deux auras permanentes, entierement decrites en DBC :
+ *
+ *   84780, effets 1 et 2, toutes les 45 s : 84782 (Mot de pouvoir : Bouclier
+ *          41373) et 84781 (les ailes, 30 s)
+ *   84784, effet 0, toutes les 90 s : 84785 (Infusion de puissance 54521)
+ *
+ * Meme besoin que Kelrah : ne rien declencher hors combat, sans quoi le
+ * bouclier et l infusion partent dans le vide. Les minuteurs continuent de
+ * tourner et seul le battement hors combat est supprime ; le premier effet en
+ * combat peut donc attendre jusqu a 45 s (90 s pour l infusion).
+ *
+ * EFFECT_ALL filtre par type d aura : l effet 0 de 84780 (reduction des degats
+ * subis, aura 87) n est pas concerne.
+ * ---------------------------------------------------------------------------
+ */
+
+class spell_luminaris_hors_combat : public AuraScript
+{
+    PrepareAuraScript(spell_luminaris_hors_combat);
+
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
+    {
+        Unit* porteur = GetTarget();
+        if (!porteur || !porteur->IsInCombat())
+            PreventDefaultAction();
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_luminaris_hors_combat::HandlePeriodic,
+                                EFFECT_ALL, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
+    }
+};
+
 void SC_AddPapotaSpellScripts()
 {
     RegisterSpellScript(spell_nairun_appel_des_anciens);
@@ -874,5 +913,6 @@ void SC_AddPapotaSpellScripts()
     RegisterSpellScript(spell_salvation_egide);
     RegisterSpellScript(spell_solareth_souffle);
     RegisterSpellScript(spell_solareth_zone);
+    RegisterSpellScript(spell_luminaris_hors_combat);
     RegisterCreatureAI(npc_xerthul_demon);
 }

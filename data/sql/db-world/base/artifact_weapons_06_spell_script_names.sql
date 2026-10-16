@@ -12,4 +12,6 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84681,'spell
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84700,'spell_salvation_egide');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84720,'spell_solareth_souffle');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84722,'spell_solareth_zone');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84780,'spell_luminaris_hors_combat');
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84784,'spell_luminaris_hors_combat');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84943,'spell_crocs_ecorchement');
