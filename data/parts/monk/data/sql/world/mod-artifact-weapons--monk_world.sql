@@ -89,6 +89,22 @@ INSERT INTO `item_template_locale` (`ID`, `locale`, `Name`, `Description`, `Veri
 (84138, 'esES', 'Estandarte deshilachado por el viento', 'Aún hay una imagen tejida en la tela.', 0),
 (84138, 'ruRU', 'Истрепанное ветром знамя', 'В ткань все еще вплетена картинка.', 0);
 
+DELETE FROM `item_set_names` WHERE entry BETWEEN 84037 AND 84038;
+INSERT INTO `item_set_names` (`entry`, `name`, `InventoryType`, `VerifiedBuild`) VALUES
+(84037, 'Tian Lei, Fist of the Heavenly Lightning', 21, 0),
+(84038, 'Tian Feng, Fist of the Heavenly Wind', 22, 0);
+
+DELETE FROM `item_set_names_locale` WHERE ID BETWEEN 84037 AND 84038;
+INSERT INTO `item_set_names_locale` (`ID`, `locale`, `Name`, `VerifiedBuild`) VALUES
+(84037, 'frFR', 'Tian Lei, Poing de la Foudre céleste', 0),
+(84037, 'deDE', 'Tian Lei, Faust des Himmelsblitzes', 0),
+(84037, 'esES', 'Tian Lei, Puño del Rayo celestial', 0),
+(84037, 'ruRU', 'Тянь Лэй, Кулак Небесной молнии', 0),
+(84038, 'frFR', 'Tian Feng, Poing du Vent céleste', 0),
+(84038, 'deDE', 'Tian Feng, Faust des Himmelswindes', 0),
+(84038, 'esES', 'Tian Feng, Puño del Viento celestial', 0),
+(84038, 'ruRU', 'Тянь Фэн, Кулак Небесного ветра', 0);
+
 DELETE FROM `creature_template` WHERE entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206;
 INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `CreatureImmunitiesId`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
 (84035, 0, 0, 0, 0, 0, 'Gokuro', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),

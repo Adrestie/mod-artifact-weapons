@@ -5010,6 +5010,14 @@
      "where": "ID BETWEEN 84035 AND 84038 OR ID BETWEEN 84135 AND 84138"
     },
     {
+     "table": "item_set_names",
+     "where": "entry BETWEEN 84037 AND 84038"
+    },
+    {
+     "table": "item_set_names_locale",
+     "where": "ID BETWEEN 84037 AND 84038"
+    },
+    {
      "table": "creature_template",
      "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206"
     },

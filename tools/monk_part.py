@@ -650,6 +650,14 @@ def main():
     out_sql += ["DELETE FROM `item_template_locale` WHERE ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d;" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])]
     out_sql += insert("item_template_locale", T["item_template_locale"]["cols"], loc) + [""]
 
+    # --- les noms des pièces de l'ensemble (sans eux, le cœur les prend dans item_template et le signale : Errors.log)
+    out_sql += ["DELETE FROM `item_set_names` WHERE entry BETWEEN %d AND %d;" % (TIANLEI, TIANFENG)]
+    out_sql += insert("item_set_names", ["entry", "name", "InventoryType", "VerifiedBuild"],
+                      [[i, ITEMS[i]["name"]["enUS"], {TIANLEI: 21, TIANFENG: 22}[i], 0] for i in (TIANLEI, TIANFENG)]) + [""]
+    out_sql += ["DELETE FROM `item_set_names_locale` WHERE ID BETWEEN %d AND %d;" % (TIANLEI, TIANFENG)]
+    out_sql += insert("item_set_names_locale", ["ID", "locale", "Name", "VerifiedBuild"],
+                      [[i, lang, ITEMS[i]["name"][lang], 0] for i in (TIANLEI, TIANFENG) for lang in LOCALES]) + [""]
+
     # --- les PNJ des quêtes, Yu'lon et la grue
     ct = T["creature_template"]["cols"]
     rows, models_sql, locs, spawns = [], [], [], []
@@ -734,6 +742,8 @@ def main():
         {"table": "spell_bonus_data", "where": span("entry")}, {"table": "spell_script_names", "where": span("ABS(spell_id)")},
         {"table": "item_template", "where": "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])},
         {"table": "item_template_locale", "where": "ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])},
+        {"table": "item_set_names", "where": "entry BETWEEN %d AND %d" % (TIANLEI, TIANFENG)},
+        {"table": "item_set_names_locale", "where": "ID BETWEEN %d AND %d" % (TIANLEI, TIANFENG)},
         {"table": "creature_template", "where": ids}, {"table": "creature_template_model", "where": ids.replace("entry", "CreatureID")},
         {"table": "creature_model_info", "where": "DisplayID BETWEEN %d AND %d" % (NPC_YULON, NPC_CRANE)},
         {"table": "creature_template_locale", "where": ids},

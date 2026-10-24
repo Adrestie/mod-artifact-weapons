@@ -31,6 +31,8 @@
  * ---------------------------------------------------------------------------
  */
 
+#include "CellImpl.h"
+#include "GridNotifiers.h"
 #include "Group.h"
 #include "Player.h"
 #include "ScriptMgr.h"
@@ -41,6 +43,9 @@
 #include "SpellScript.h"
 #include "TemporarySummon.h"
 #include <mutex>
+
+// doit suivre GridNotifiers.h et CellImpl.h
+#include "GridNotifiersImpl.h"
 #include <unordered_map>
 #include <vector>
 
@@ -82,6 +87,7 @@ static constexpr float YULON_PORTEE     = 40.0f;   // les alliés que Yu'lon soi
 static constexpr float SHAOHAO_PORTEE   = 40.0f;   // les alliés des rebonds, autour de la cible soignée
 static constexpr uint32 SHAOHAO_REBONDS = 2;
 static constexpr uint32 GRUE_PERIODE    = 500;     // ms, une impulsion de Vents croisés
+static constexpr float GRUE_PORTEE      = 8.0f;    // la portée de Poings de fureur : la cible de la grue sans cible du Moine
 static constexpr uint32 PAUME_RECHARGE  = 4000;    // ms entre deux Paumes au visage
 static constexpr int32 PAUME_BREUVAGES  = -1000;   // ms ôtées aux breuvages
 
@@ -338,8 +344,8 @@ public:
     }
 };
 
-// Vents croisés : quand le Moine qui porte Tian Feng lance Poings de fureur sur un ennemi, une grue (84206) se pose
-// sur lui pour la durée de la canalisation
+// Vents croisés : quand le Moine qui porte Tian Feng lance Poings de fureur, une grue (84206) se pose sur sa cible, ou
+// sur l'ennemi le plus proche à 8 m, pour la durée de la canalisation
 class monk_weapons_vents_croises : public PlayerScript
 {
 public:
@@ -349,10 +355,18 @@ public:
     {
         if (!spell || spell->GetSpellInfo()->GetFirstRankSpell()->Id != SPELL_MONK_FISTS_OF_FURY || !moine->HasAura(SPELL_TIANFENG_VENTS_CROISES))
             return;
+        // sa cible, ou, sans cible (Poings de fureur n'en demande pas), l'ennemi le plus proche à portée de ses poings
         Unit* cible = moine->GetVictim();
         if (!cible)
             cible = moine->GetSelectedUnit();
         if (!cible || !moine->IsValidAttackTarget(cible))
+        {
+            cible = nullptr;
+            Acore::NearestAttackableUnitInObjectRangeCheck check(moine, moine, GRUE_PORTEE);
+            Acore::UnitLastSearcher<Acore::NearestAttackableUnitInObjectRangeCheck> searcher(moine, cible, check);
+            Cell::VisitObjects(moine, searcher, GRUE_PORTEE);
+        }
+        if (!cible)
             return;
         {
             std::lock_guard<std::mutex> garde(monkWeaponsLock);
