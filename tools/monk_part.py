@@ -565,7 +565,7 @@ def main():
         [YUWU, "staff_2h_artifactshaohao_d_03.mdx", "", "staff_2h_artifactshaohao_d_03_jade", "", "inv_staff_2h_artifactshaohao_d_03", ""],
         [JINGU, "staff_2h_artifactmonkeyking_d_03.mdx", "", "staff_2h_artifactmonkeyking_d_03red", "", "inv_staff_2h_artifactmonkeyking_d_03", ""],
         [TIANLEI, "hand_1h_artifactskywall_d_06.mdx", "", "hand_1h_artifactskywall_d_06_jade", "", "inv_hand_1h_artifactskywall_d_06", ""],
-        [TIANFENG, "hand_1h_artifactskywall_d_06.mdx", "", "hand_1h_artifactskywall_d_06_white", "", "inv_hand_1h_artifactskywall_d_06dual", ""],
+        [TIANFENG, "hand_1h_artifactskywall_d_06_l.mdx", "", "hand_1h_artifactskywall_d_06_white", "", "inv_hand_1h_artifactskywall_d_06dual", ""],
     ]
     displays = [d + [0] * 8 + [""] * 8 + [0, 0] for d in displays]
     names = localized(N["windlord"] | {"enUS": "Fists of the Heavens", "frFR": "Poings des Cieux", "deDE": "Fäuste der Himmel",
