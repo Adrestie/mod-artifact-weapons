@@ -15,8 +15,8 @@ data/client/ (modèles, textures, icônes, images des quêtes).
 Les sorts du Moine visés sont ceux de mod-custom-classes (version installée affc0a8) : Paume du tigre 81113,
 Poings de fureur 81198, Brume apaisante 81771 et celle de la statue 81896, les breuvages (src/monk_weapons.cpp).
 
-PROVISOIRE (en attente de Maitre, à remplacer sans toucher au reste) : les noms, l'apparence et l'emplacement des
-trois PNJ des quêtes (PNJ_*), les images des quêtes (tools/quest_picture.py, depuis la carte du monde).
+PROVISOIRE (en attente de Maitre, à remplacer sans toucher au reste) : les emplacements des quatre PNJ des quêtes
+(PNJ_*), les images des quêtes (tools/quest_picture.py, depuis la carte du monde).
 """
 import json
 import os
@@ -43,11 +43,11 @@ OX_STANCE = 23                                      # forme de la posture du Buf
 
 # ------------------------------------------------------------------ identifiants (cahier, ID_RANGES.md tranche 84)
 YUWU, JINGU, TIANLEI, TIANFENG = 84035, 84036, 84037, 84038
-BOOK = {YUWU: 84135, JINGU: 84136, TIANLEI: 84137}
-QUEST = {YUWU: 84035, JINGU: 84036, TIANLEI: 84037}       # quête et PNJ ont le même numéro
+BOOK = {YUWU: 84135, JINGU: 84136, TIANLEI: 84137, TIANFENG: 84138}
+QUEST = {YUWU: 84035, JINGU: 84036, TIANLEI: 84037, TIANFENG: 84038}       # quête et PNJ ont le même numéro
 ITEMSET = 84037                                     # Poings des Cieux (ItemSet.dbc)
 NPC_YULON, NPC_CRANE = 84205, 84206                 # créatures invoquées ; leurs affichages et modèles du même numéro
-SPAWN_GUID = {YUWU: 8400035, JINGU: 8400036, TIANLEI: 8400037}
+SPAWN_GUID = {YUWU: 8400035, JINGU: 8400036, TIANLEI: 8400037, TIANFENG: 8400038}
 # les sorts
 S_GIFT, S_CLOUD, S_GIFT_USE = 84960, 84961, 84962
 S_MISTS, S_YULON = 84964, 84965
@@ -59,18 +59,19 @@ S_CROSSWINDS, S_CRANE, S_CRANE_PULSE = 84460, 84461, 84462
 S_WINDLORD_SET, S_WINDLORD, S_WINDLORD_OFF = 84463, 84464, 84465
 SPELL_BLOCKS = [[84460, 84479], [84920, 84939], [84960, 84999]]
 
-# PROVISOIRE : les PNJ des quêtes (Maitre n'a pas encore choisi ; carte du coordinateur, 24/10 22:34 UTC)
-PNJ_DISPLAY = 8391                                  # celui de Korogo (84026), provisoire
+# les PNJ des quêtes : la plante des 32 autres armes (affichage 8391) et un nom sur le modèle des leurs (les syllabes
+# de Korogu, le russe en cyrillique ; Maitre, fil des armes, 24/10 22:54 UTC). Un PNJ par quête.
+# PROVISOIRE : leurs emplacements (en attente de Maitre)
+PNJ_DISPLAY = 8391
 PNJ = {
-    YUWU: {"name": {"enUS": "[PROVISIONAL] Mist Keeper", "frFR": "[PROVISOIRE] Gardien des brumes", "deDE": "[VORLÄUFIG] Nebelhüter",
-                       "esES": "[PROVISIONAL] Guardián de las brumas", "ruRU": "[ВРЕМЕННО] Хранитель туманов"},
-              "spot": (571, 5120.6, 5469.7, -91.7, 3.1), "zone": "SholazarBasin"},          # la cascade de la Gorge de Sholazar
-    JINGU: {"name": {"enUS": "[PROVISIONAL] Wandering Brewer", "frFR": "[PROVISOIRE] Brasseur vagabond", "deDE": "[VORLÄUFIG] Wandernder Brauer",
-                     "esES": "[PROVISIONAL] Cervecero errante", "ruRU": "[ВРЕМЕННО] Странствующий пивовар"},
-            "spot": (571, 7084.5, -1938.0, 772.4, 1.6), "zone": "TheStormPeaks"},          # Brumeterre, Pics foudroyés
-    TIANLEI: {"name": {"enUS": "[PROVISIONAL] Sky Watcher", "frFR": "[PROVISOIRE] Guetteur des cieux", "deDE": "[VORLÄUFIG] Himmelswächter",
-                       "esES": "[PROVISIONAL] Vigía de los cielos", "ruRU": "[ВРЕМЕННО] Наблюдатель небес"},
-              "spot": (571, 8395.5, -392.9, 903.2, 3.1), "zone": "TheStormPeaks"},        # au pied d'Ulduar extérieur
+    YUWU: {"name": {"enUS": "Gukoru", "frFR": "Gukoru", "deDE": "Gukoru", "esES": "Gukoru", "ruRU": "Гукору"},
+           "spot": (571, 5120.6, 5469.7, -91.7, 3.1), "zone": "SholazarBasin"},          # la cascade de la Gorge de Sholazar
+    JINGU: {"name": {"enUS": "Rukogo", "frFR": "Rukogo", "deDE": "Rukogo", "esES": "Rukogo", "ruRU": "Рукого"},
+            "spot": (571, 7084.5, -1938.0, 772.4, 1.6), "zone": "TheStormPeaks"},         # Brumeterre, Pics foudroyés
+    TIANLEI: {"name": {"enUS": "Gorogu", "frFR": "Gorogu", "deDE": "Gorogu", "esES": "Gorogu", "ruRU": "Горогу"},
+              "spot": (571, 8395.5, -392.9, 903.2, 3.1), "zone": "TheStormPeaks"},       # au pied d'Ulduar extérieur
+    TIANFENG: {"name": {"enUS": "Kuroko", "frFR": "Kuroko", "deDE": "Kuroko", "esES": "Kuroko", "ruRU": "Куроко"},
+               "spot": (571, 8401.5, -387.9, 903.2, 3.1), "zone": "TheStormPeaks"},      # au pied d'Ulduar extérieur, à côté
 }
 
 # ------------------------------------------------------------------ textes
@@ -123,6 +124,11 @@ BOOKS = {
                        "deDE": "Auf dem, was von seinem Papier übrig ist, ist ein Bild gemalt.",
                        "esES": "Hay una imagen pintada en lo que queda de su papel.", "ruRU": "На уцелевшей бумаге нарисована картинка."},
               "display": 7139},
+    TIANFENG: {"name": {"enUS": "Wind-Frayed Banner", "frFR": "Bannière effilochée par le vent", "deDE": "Vom Wind zerfranstes Banner",
+                        "esES": "Estandarte deshilachado por el viento", "ruRU": "Истрепанное ветром знамя"},
+               "desc": {"enUS": "A picture is still woven into the cloth.", "frFR": "Une image est encore tissée dans l’étoffe.",
+                        "deDE": "In den Stoff ist noch ein Bild gewebt.", "esES": "Aún hay una imagen tejida en la tela.",
+                        "ruRU": "В ткань все еще вплетена картинка."}, "display": 7695},
 }
 QUESTS = {
     YUWU: {"title": {"enUS": "The Song of the Waterfall", "frFR": "Le chant de la cascade", "deDE": "Das Lied des Wasserfalls",
@@ -131,6 +137,8 @@ QUESTS = {
                       "esES": "El cervecero risueño", "ruRU": "Смеющийся пивовар"}},
     TIANLEI: {"title": {"enUS": "Above the Storm", "frFR": "Au-dessus de l’orage", "deDE": "Über dem Sturm",
                         "esES": "Por encima de la tormenta", "ruRU": "Над бурей"}},
+    TIANFENG: {"title": {"enUS": "Where the Wind Turns", "frFR": "Là où tourne le vent", "deDE": "Wo der Wind dreht",
+                         "esES": "Donde gira el viento", "ruRU": "Там, где поворачивает ветер"}},
 }
 # les autres phrases des quêtes, celles des 32 autres (84026 : « The Wing of Penance »)
 QUEST_DETAILS = {"enUS": "The book holds nothing but a faded picture of a place you feel you know...",
@@ -536,7 +544,7 @@ def main():
     for f in ("inv_staff_2h_artifactshaohao_d_03", "inv_staff_2h_artifactmonkeyking_d_03", "inv_hand_1h_artifactskywall_d_06",
               "inv_hand_1h_artifactskywall_d_06dual"):
         shutil.copyfile(os.path.join(work, "export", "tex", f + ".blp"), os.path.join(icons, f + ".blp"))
-    for n in (35, 36, 37):
+    for n in (35, 36, 37, 38):
         shutil.copyfile(os.path.join(work, "pictures", "Papoti_weapon_8010%d.blp" % n), os.path.join(icons, "Papoti_weapon_8010%d.blp" % n))
     for sub, folder in (("yulon_final", "PandarenSerpentGod"), ("ported_crane", "Crane")):
         dst = os.path.join(client, "Creature", folder)
@@ -589,7 +597,7 @@ def main():
                 "owned_ids": owned, "rows": [words(r) for r in rows]}
     dbc_entries = [
         entry("Spell.dbc", SPELL_LAYOUT, spell_rows, [[136, 151], [153, 168], [170, 185], [187, 202]], SPELL_BLOCKS),
-        entry("Item.dbc", "i" * 8, items, [], [[YUWU, TIANFENG], [BOOK[YUWU], BOOK[TIANLEI]]]),
+        entry("Item.dbc", "i" * 8, items, [], [[YUWU, TIANFENG], [BOOK[YUWU], BOOK[TIANFENG]]]),
         entry("ItemDisplayInfo.dbc", "i" + "s" * 6 + "i" * 8 + "s" * 8 + "ii", displays, [[1, 6], [15, 22]], [[YUWU, TIANFENG]]),
         entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [itemset], [[1, 16]], [[ITEMSET, ITEMSET]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CRANE]]),
@@ -633,13 +641,13 @@ def main():
         row.update({"entry": bid, "name": BOOKS[qid]["name"]["enUS"], "displayid": BOOKS[qid]["display"], "AllowableClass": MONK_MASK,
                     "description": BOOKS[qid]["desc"]["enUS"], "startquest": QUEST[qid]})
         rows.append([row[c] for c in it])
-    out_sql += ["DELETE FROM `item_template` WHERE entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d;" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANLEI])]
+    out_sql += ["DELETE FROM `item_template` WHERE entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d;" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])]
     out_sql += insert("item_template", it, rows) + [""]
     loc = []
     for iid, d in list(ITEMS.items()) + [(BOOK[q], BOOKS[q]) for q in BOOK]:
         for lang in LOCALES:
             loc.append([iid, lang, d["name"][lang], d["desc"][lang], 0])
-    out_sql += ["DELETE FROM `item_template_locale` WHERE ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d;" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANLEI])]
+    out_sql += ["DELETE FROM `item_template_locale` WHERE ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d;" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])]
     out_sql += insert("item_template_locale", T["item_template_locale"]["cols"], loc) + [""]
 
     # --- les PNJ des quêtes, Yu'lon et la grue
@@ -662,7 +670,7 @@ def main():
         rows.append([row[c] for c in ct])
         models_sql.append([cid, 0, cid, 1, 1, 0])
         locs += [[cid, lang, name[lang], "", 0] for lang in LOCALES]
-    ids = "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANLEI, NPC_YULON, NPC_CRANE)
+    ids = "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, NPC_YULON, NPC_CRANE)
     out_sql += ["DELETE FROM `creature_template` WHERE %s;" % ids] + insert("creature_template", ct, rows) + [""]
     out_sql += ["DELETE FROM `creature_template_model` WHERE %s;" % ids.replace("entry", "CreatureID")]
     out_sql += insert("creature_template_model", T["creature_template_model"]["cols"], models_sql) + [""]
@@ -671,7 +679,7 @@ def main():
                       [[NPC_YULON, 1.0, 1.5, 2, 0], [NPC_CRANE, 0.5, 1.0, 2, 0]]) + [""]
     out_sql += ["DELETE FROM `creature_template_locale` WHERE %s;" % ids]
     out_sql += insert("creature_template_locale", T["creature_template_locale"]["cols"], locs) + [""]
-    out_sql += ["DELETE FROM `creature` WHERE guid BETWEEN %d AND %d;" % (SPAWN_GUID[YUWU], SPAWN_GUID[TIANLEI])]
+    out_sql += ["DELETE FROM `creature` WHERE guid BETWEEN %d AND %d;" % (SPAWN_GUID[YUWU], SPAWN_GUID[TIANFENG])]
     out_sql += insert("creature", T["creature"]["cols"], spawns) + [""]
 
     # --- les quêtes
@@ -683,8 +691,6 @@ def main():
         row.update({"ID": QUEST[qid], "RewardItem1": qid, "RewardAmount1": 1, "LogTitle": QUESTS[qid]["title"]["enUS"],
                     "LogDescription": QUEST_OBJECTIVE["enUS"], "QuestDescription": "'" + esc(QUEST_DETAILS["enUS"]) + picture + "'",
                     "ObjectiveText1": QUEST_OBJECTIVE["enUS"]})
-        if qid == TIANLEI:                                  # un seul livre, une seule quête : les deux poings
-            row.update({"RewardItem2": TIANFENG, "RewardAmount2": 1})
         rows.append([row[c] for c in qt])
         addon = copy_row(T, "quest_template_addon", "ID", 84026)
         addon.update({"ID": QUEST[qid], "AllowableClasses": MONK_MASK})
@@ -695,16 +701,16 @@ def main():
             qlocs.append([QUEST[qid], lang, QUESTS[qid]["title"][lang], "'" + esc(QUEST_DETAILS[lang]) + picture + "'",
                           QUEST_OBJECTIVE[lang], "", "", QUEST_OBJECTIVE[lang], "", "", "", 0])
             olocs.append([QUEST[qid], lang, QUEST_REWARD[lang], 0])
-    out_sql += ["DELETE FROM `quest_template` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANLEI)] + insert("quest_template", qt, rows) + [""]
-    out_sql += ["DELETE FROM `quest_template_addon` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANLEI)]
+    out_sql += ["DELETE FROM `quest_template` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANFENG)] + insert("quest_template", qt, rows) + [""]
+    out_sql += ["DELETE FROM `quest_template_addon` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANFENG)]
     out_sql += insert("quest_template_addon", T["quest_template_addon"]["cols"], addons) + [""]
-    out_sql += ["DELETE FROM `quest_offer_reward` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANLEI)]
+    out_sql += ["DELETE FROM `quest_offer_reward` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANFENG)]
     out_sql += insert("quest_offer_reward", T["quest_offer_reward"]["cols"], offers) + [""]
-    out_sql += ["DELETE FROM `creature_questender` WHERE quest BETWEEN %d AND %d;" % (YUWU, TIANLEI)]
+    out_sql += ["DELETE FROM `creature_questender` WHERE quest BETWEEN %d AND %d;" % (YUWU, TIANFENG)]
     out_sql += insert("creature_questender", T["creature_questender"]["cols"], enders) + [""]
-    out_sql += ["DELETE FROM `quest_template_locale` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANLEI)]
+    out_sql += ["DELETE FROM `quest_template_locale` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANFENG)]
     out_sql += insert("quest_template_locale", T["quest_template_locale"]["cols"], qlocs) + [""]
-    out_sql += ["DELETE FROM `quest_offer_reward_locale` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANLEI)]
+    out_sql += ["DELETE FROM `quest_offer_reward_locale` WHERE ID BETWEEN %d AND %d;" % (YUWU, TIANFENG)]
     out_sql += insert("quest_offer_reward_locale", T["quest_offer_reward_locale"]["cols"], olocs) + [""]
 
     # --- le butin : les livres dans la référence 84000 (Citadelle de la Couronne de glace), comme les 32 autres
@@ -715,7 +721,7 @@ def main():
         r = dict(ref)
         r.update({"Item": bid})
         rows.append([r[c] for c in rl])
-    out_sql += ["DELETE FROM `reference_loot_template` WHERE Entry = 84000 AND Item BETWEEN %d AND %d;" % (BOOK[YUWU], BOOK[TIANLEI])]
+    out_sql += ["DELETE FROM `reference_loot_template` WHERE Entry = 84000 AND Item BETWEEN %d AND %d;" % (BOOK[YUWU], BOOK[TIANFENG])]
     out_sql += insert("reference_loot_template", rl, rows) + [""]
 
     sql_dir = os.path.join(PART, "data", "sql", "world")
@@ -726,19 +732,19 @@ def main():
     world_rows = [
         {"table": "spell_dbc", "where": span("ID")}, {"table": "spell_proc", "where": span("ABS(SpellId)")},
         {"table": "spell_bonus_data", "where": span("entry")}, {"table": "spell_script_names", "where": span("ABS(spell_id)")},
-        {"table": "item_template", "where": "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANLEI])},
-        {"table": "item_template_locale", "where": "ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANLEI])},
+        {"table": "item_template", "where": "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])},
+        {"table": "item_template_locale", "where": "ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])},
         {"table": "creature_template", "where": ids}, {"table": "creature_template_model", "where": ids.replace("entry", "CreatureID")},
         {"table": "creature_model_info", "where": "DisplayID BETWEEN %d AND %d" % (NPC_YULON, NPC_CRANE)},
         {"table": "creature_template_locale", "where": ids},
-        {"table": "creature", "where": "guid BETWEEN %d AND %d" % (SPAWN_GUID[YUWU], SPAWN_GUID[TIANLEI])},
-        {"table": "quest_template", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANLEI)},
-        {"table": "quest_template_addon", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANLEI)},
-        {"table": "quest_offer_reward", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANLEI)},
-        {"table": "creature_questender", "where": "quest BETWEEN %d AND %d" % (YUWU, TIANLEI)},
-        {"table": "quest_template_locale", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANLEI)},
-        {"table": "quest_offer_reward_locale", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANLEI)},
-        {"table": "reference_loot_template", "where": "Entry = 84000 AND Item BETWEEN %d AND %d" % (BOOK[YUWU], BOOK[TIANLEI])},
+        {"table": "creature", "where": "guid BETWEEN %d AND %d" % (SPAWN_GUID[YUWU], SPAWN_GUID[TIANFENG])},
+        {"table": "quest_template", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
+        {"table": "quest_template_addon", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
+        {"table": "quest_offer_reward", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
+        {"table": "creature_questender", "where": "quest BETWEEN %d AND %d" % (YUWU, TIANFENG)},
+        {"table": "quest_template_locale", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
+        {"table": "quest_offer_reward_locale", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
+        {"table": "reference_loot_template", "where": "Entry = 84000 AND Item BETWEEN %d AND %d" % (BOOK[YUWU], BOOK[TIANFENG])},
     ]
     manifest = {
         "format": "wow-mods-installer/1",

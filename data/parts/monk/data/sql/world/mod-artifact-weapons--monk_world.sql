@@ -43,7 +43,7 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (84964, 'spell_yuwu_brumes'),
 (84463, 'spell_poings_des_cieux_ensemble');
 
-DELETE FROM `item_template` WHERE entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84135 AND 84137;
+DELETE FROM `item_template` WHERE entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84135 AND 84138;
 INSERT INTO `item_template` (`entry`, `class`, `subclass`, `SoundOverrideSubclass`, `name`, `displayid`, `Quality`, `Flags`, `FlagsExtra`, `BuyCount`, `BuyPrice`, `SellPrice`, `InventoryType`, `AllowableClass`, `AllowableRace`, `ItemLevel`, `RequiredLevel`, `RequiredSkill`, `RequiredSkillRank`, `requiredspell`, `requiredhonorrank`, `RequiredCityRank`, `RequiredReputationFaction`, `RequiredReputationRank`, `maxcount`, `stackable`, `ContainerSlots`, `stat_type1`, `stat_value1`, `stat_type2`, `stat_value2`, `stat_type3`, `stat_value3`, `stat_type4`, `stat_value4`, `stat_type5`, `stat_value5`, `stat_type6`, `stat_value6`, `stat_type7`, `stat_value7`, `stat_type8`, `stat_value8`, `stat_type9`, `stat_value9`, `stat_type10`, `stat_value10`, `ScalingStatDistribution`, `ScalingStatValue`, `dmg_min1`, `dmg_max1`, `dmg_type1`, `dmg_min2`, `dmg_max2`, `dmg_type2`, `armor`, `holy_res`, `fire_res`, `nature_res`, `frost_res`, `shadow_res`, `arcane_res`, `delay`, `ammo_type`, `RangedModRange`, `spellid_1`, `spelltrigger_1`, `spellcharges_1`, `spellppmRate_1`, `spellcooldown_1`, `spellcategory_1`, `spellcategorycooldown_1`, `spellid_2`, `spelltrigger_2`, `spellcharges_2`, `spellppmRate_2`, `spellcooldown_2`, `spellcategory_2`, `spellcategorycooldown_2`, `spellid_3`, `spelltrigger_3`, `spellcharges_3`, `spellppmRate_3`, `spellcooldown_3`, `spellcategory_3`, `spellcategorycooldown_3`, `spellid_4`, `spelltrigger_4`, `spellcharges_4`, `spellppmRate_4`, `spellcooldown_4`, `spellcategory_4`, `spellcategorycooldown_4`, `spellid_5`, `spelltrigger_5`, `spellcharges_5`, `spellppmRate_5`, `spellcooldown_5`, `spellcategory_5`, `spellcategorycooldown_5`, `bonding`, `description`, `PageText`, `LanguageID`, `PageMaterial`, `startquest`, `lockid`, `Material`, `sheath`, `RandomProperty`, `RandomSuffix`, `block`, `itemset`, `MaxDurability`, `area`, `Map`, `BagFamily`, `TotemCategory`, `socketColor_1`, `socketContent_1`, `socketColor_2`, `socketContent_2`, `socketColor_3`, `socketContent_3`, `socketBonus`, `GemProperties`, `RequiredDisenchantSkill`, `ArmorDamageModifier`, `duration`, `ItemLimitCategory`, `HolidayId`, `ScriptName`, `DisenchantID`, `FoodType`, `minMoneyLoot`, `maxMoneyLoot`, `flagsCustom`, `VerifiedBuild`) VALUES
 (84035, 2, 10, -1, 'Yu Wu, Staff of the Mists', 84035, 5, 8, 0, 1, 0, 15000000, 17, 512, -1, 999, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 5, 225, 7, 262, 32, 86, 36, 98, 45, 1125, 43, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 974, 1274, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3600, 0, 0, 84960, 1, 0, 0, -1, 0, -1, 84962, 0, 0, 0, -1, 0, -1, 84964, 1, 0, 0, -1, 0, -1, 84966, 1, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'The mists of the Jade Serpent gather around its head, waiting for a wound to close.', 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1222, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0),
 (84036, 2, 10, -1, 'Jin Gu, Staff of the Monkey King', 84036, 5, 8, 0, 1, 0, 15000000, 17, 512, -1, 999, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 3, 189, 7, 220, 12, 79, 13, 86, 14, 86, 31, 145, 38, 157, 0, 0, 0, 0, 0, 0, 0, 0, 1163, 1899, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3600, 0, 0, 84980, 0, 0, 0, -1, 0, -1, 84982, 1, 0, 0, -1, 0, -1, 84983, 1, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'Its wood still smells of the brew the Monkey King spilled on it, laughing.', 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1973, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0),
@@ -51,9 +51,10 @@ INSERT INTO `item_template` (`entry`, `class`, `subclass`, `SoundOverrideSubclas
 (84038, 2, 13, -1, 'Tian Feng, Fist of the Heavenly Wind', 84038, 5, 8, 0, 1, 0, 15000000, 22, 512, -1, 999, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 3, 91, 7, 113, 31, 79, 32, 30, 36, 34, 38, 136, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 623, 1076, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2600, 0, 0, 84460, 1, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'The left fist of the Heavens. The wind follows it wherever it strikes.', 0, 0, 0, 0, 0, 1, 7, 0, 0, 0, 84037, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1107, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0),
 (84135, 15, 4, -1, 'Mist-Soaked Scroll', 1246, 5, 0, 0, 1, 0, 0, 0, 512, -1, 80, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'The ink runs as soon as you unroll it.', 0, 0, 0, 84035, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0),
 (84136, 15, 4, -1, 'Brew-Stained Recipe Book', 1155, 5, 0, 0, 1, 0, 0, 0, 512, -1, 80, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'Every page smells of fermented rice.', 0, 0, 0, 84036, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0),
-(84137, 15, 4, -1, 'Storm-Torn Kite', 7139, 5, 0, 0, 1, 0, 0, 0, 512, -1, 80, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'A picture is painted on what is left of its paper.', 0, 0, 0, 84037, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0);
+(84137, 15, 4, -1, 'Storm-Torn Kite', 7139, 5, 0, 0, 1, 0, 0, 0, 512, -1, 80, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'A picture is painted on what is left of its paper.', 0, 0, 0, 84037, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0),
+(84138, 15, 4, -1, 'Wind-Frayed Banner', 7695, 5, 0, 0, 1, 0, 0, 0, 512, -1, 80, 80, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 'A picture is still woven into the cloth.', 0, 0, 0, 84038, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0);
 
-DELETE FROM `item_template_locale` WHERE ID BETWEEN 84035 AND 84038 OR ID BETWEEN 84135 AND 84137;
+DELETE FROM `item_template_locale` WHERE ID BETWEEN 84035 AND 84038 OR ID BETWEEN 84135 AND 84138;
 INSERT INTO `item_template_locale` (`ID`, `locale`, `Name`, `Description`, `VerifiedBuild`) VALUES
 (84035, 'frFR', 'Yu Wu, bâton des Brumes', 'Les brumes du Serpent de jade s’amassent autour de sa tête, dans l’attente d’une blessure à refermer.', 0),
 (84035, 'deDE', 'Yu Wu, Stab der Nebel', 'Die Nebel der Jadeschlange sammeln sich um seinen Kopf und warten auf eine Wunde, die sie schließen können.', 0),
@@ -82,21 +83,27 @@ INSERT INTO `item_template_locale` (`ID`, `locale`, `Name`, `Description`, `Veri
 (84137, 'frFR', 'Cerf-volant déchiré par l’orage', 'Une image est peinte sur ce qui reste de son papier.', 0),
 (84137, 'deDE', 'Vom Sturm zerrissener Drachen', 'Auf dem, was von seinem Papier übrig ist, ist ein Bild gemalt.', 0),
 (84137, 'esES', 'Cometa rasgada por la tormenta', 'Hay una imagen pintada en lo que queda de su papel.', 0),
-(84137, 'ruRU', 'Разорванный бурей воздушный змей', 'На уцелевшей бумаге нарисована картинка.', 0);
+(84137, 'ruRU', 'Разорванный бурей воздушный змей', 'На уцелевшей бумаге нарисована картинка.', 0),
+(84138, 'frFR', 'Bannière effilochée par le vent', 'Une image est encore tissée dans l’étoffe.', 0),
+(84138, 'deDE', 'Vom Wind zerfranstes Banner', 'In den Stoff ist noch ein Bild gewebt.', 0),
+(84138, 'esES', 'Estandarte deshilachado por el viento', 'Aún hay una imagen tejida en la tela.', 0),
+(84138, 'ruRU', 'Истрепанное ветром знамя', 'В ткань все еще вплетена картинка.', 0);
 
-DELETE FROM `creature_template` WHERE entry BETWEEN 84035 AND 84037 OR entry BETWEEN 84205 AND 84206;
+DELETE FROM `creature_template` WHERE entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206;
 INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `CreatureImmunitiesId`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
-(84035, 0, 0, 0, 0, 0, '[PROVISIONAL] Mist Keeper', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
-(84036, 0, 0, 0, 0, 0, '[PROVISIONAL] Wandering Brewer', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
-(84037, 0, 0, 0, 0, 0, '[PROVISIONAL] Sky Watcher', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
+(84035, 0, 0, 0, 0, 0, 'Gukoru', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
+(84036, 0, 0, 0, 0, 0, 'Rukogo', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
+(84037, 0, 0, 0, 0, 0, 'Gorogu', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
+(84038, 0, 0, 0, 0, 0, 'Kuroko', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
 (84205, 0, 0, 0, 0, 0, 'Yu\'lon', '', NULL, 0, 80, 80, 2, 35, 0, 1, 1.14286, 1, 1, 20, 0, 0, 1, 2000, 2000, 1, 1, 1, 33554434, 0, 0, 0, 3, 72, 0, 0, 0, 0, 0, 0, 0, '', 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 'npc_yuwu_yulon', NULL),
 (84206, 0, 0, 0, 0, 0, 'Crosswinds', '', NULL, 0, 80, 80, 2, 35, 0, 1, 1.14286, 1, 1, 20, 0, 0, 1, 2000, 2000, 1, 1, 1, 33554434, 0, 0, 0, 3, 72, 0, 0, 0, 0, 0, 0, 0, '', 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 2, 'npc_tian_feng_grue', NULL);
 
-DELETE FROM `creature_template_model` WHERE CreatureID BETWEEN 84035 AND 84037 OR CreatureID BETWEEN 84205 AND 84206;
+DELETE FROM `creature_template_model` WHERE CreatureID BETWEEN 84035 AND 84038 OR CreatureID BETWEEN 84205 AND 84206;
 INSERT INTO `creature_template_model` (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`, `VerifiedBuild`) VALUES
 (84035, 0, 8391, 1, 1, 0),
 (84036, 0, 8391, 1, 1, 0),
 (84037, 0, 8391, 1, 1, 0),
+(84038, 0, 8391, 1, 1, 0),
 (84205, 0, 84205, 1, 1, 0),
 (84206, 0, 84206, 1, 1, 0);
 
@@ -105,20 +112,24 @@ INSERT INTO `creature_model_info` (`DisplayID`, `BoundingRadius`, `CombatReach`,
 (84205, 1.0, 1.5, 2, 0),
 (84206, 0.5, 1.0, 2, 0);
 
-DELETE FROM `creature_template_locale` WHERE entry BETWEEN 84035 AND 84037 OR entry BETWEEN 84205 AND 84206;
+DELETE FROM `creature_template_locale` WHERE entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206;
 INSERT INTO `creature_template_locale` (`entry`, `locale`, `Name`, `Title`, `VerifiedBuild`) VALUES
-(84035, 'frFR', '[PROVISOIRE] Gardien des brumes', '', 0),
-(84035, 'deDE', '[VORLÄUFIG] Nebelhüter', '', 0),
-(84035, 'esES', '[PROVISIONAL] Guardián de las brumas', '', 0),
-(84035, 'ruRU', '[ВРЕМЕННО] Хранитель туманов', '', 0),
-(84036, 'frFR', '[PROVISOIRE] Brasseur vagabond', '', 0),
-(84036, 'deDE', '[VORLÄUFIG] Wandernder Brauer', '', 0),
-(84036, 'esES', '[PROVISIONAL] Cervecero errante', '', 0),
-(84036, 'ruRU', '[ВРЕМЕННО] Странствующий пивовар', '', 0),
-(84037, 'frFR', '[PROVISOIRE] Guetteur des cieux', '', 0),
-(84037, 'deDE', '[VORLÄUFIG] Himmelswächter', '', 0),
-(84037, 'esES', '[PROVISIONAL] Vigía de los cielos', '', 0),
-(84037, 'ruRU', '[ВРЕМЕННО] Наблюдатель небес', '', 0),
+(84035, 'frFR', 'Gukoru', '', 0),
+(84035, 'deDE', 'Gukoru', '', 0),
+(84035, 'esES', 'Gukoru', '', 0),
+(84035, 'ruRU', 'Гукору', '', 0),
+(84036, 'frFR', 'Rukogo', '', 0),
+(84036, 'deDE', 'Rukogo', '', 0),
+(84036, 'esES', 'Rukogo', '', 0),
+(84036, 'ruRU', 'Рукого', '', 0),
+(84037, 'frFR', 'Gorogu', '', 0),
+(84037, 'deDE', 'Gorogu', '', 0),
+(84037, 'esES', 'Gorogu', '', 0),
+(84037, 'ruRU', 'Горогу', '', 0),
+(84038, 'frFR', 'Kuroko', '', 0),
+(84038, 'deDE', 'Kuroko', '', 0),
+(84038, 'esES', 'Kuroko', '', 0),
+(84038, 'ruRU', 'Куроко', '', 0),
 (84205, 'frFR', 'Yu’lon', '', 0),
 (84205, 'deDE', 'Yu\'lon', '', 0),
 (84205, 'esES', 'Yu\'lon', '', 0),
@@ -128,37 +139,42 @@ INSERT INTO `creature_template_locale` (`entry`, `locale`, `Name`, `Title`, `Ver
 (84206, 'esES', 'Vientos cruzados', '', 0),
 (84206, 'ruRU', 'Встречные ветра', '', 0);
 
-DELETE FROM `creature` WHERE guid BETWEEN 8400035 AND 8400037;
+DELETE FROM `creature` WHERE guid BETWEEN 8400035 AND 8400038;
 INSERT INTO `creature` (`guid`, `id`, `map`, `zoneId`, `areaId`, `spawnMask`, `phaseMask`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `wander_distance`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `ScriptName`, `VerifiedBuild`, `CreateObject`, `Comment`) VALUES
 (8400035, 84035, 571, 0, 0, 1, 1, 0, 5120.6, 5469.7, -91.7, 3.1, 300, 0, 0, 5342, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
 (8400036, 84036, 571, 0, 0, 1, 1, 0, 7084.5, -1938.0, 772.4, 1.6, 300, 0, 0, 5342, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
-(8400037, 84037, 571, 0, 0, 1, 1, 0, 8395.5, -392.9, 903.2, 3.1, 300, 0, 0, 5342, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
+(8400037, 84037, 571, 0, 0, 1, 1, 0, 8395.5, -392.9, 903.2, 3.1, 300, 0, 0, 5342, 0, 0, 0, 0, 0, '', NULL, 0, NULL),
+(8400038, 84038, 571, 0, 0, 1, 1, 0, 8401.5, -387.9, 903.2, 3.1, 300, 0, 0, 5342, 0, 0, 0, 0, 0, '', NULL, 0, NULL);
 
-DELETE FROM `quest_template` WHERE ID BETWEEN 84035 AND 84037;
+DELETE FROM `quest_template` WHERE ID BETWEEN 84035 AND 84038;
 INSERT INTO `quest_template` (`ID`, `QuestType`, `QuestLevel`, `MinLevel`, `QuestSortID`, `QuestInfoID`, `SuggestedGroupNum`, `RequiredFactionId1`, `RequiredFactionId2`, `RequiredFactionValue1`, `RequiredFactionValue2`, `RewardNextQuest`, `RewardXPDifficulty`, `RewardMoney`, `RewardMoneyDifficulty`, `RewardDisplaySpell`, `RewardSpell`, `RewardHonor`, `RewardKillHonor`, `StartItem`, `Flags`, `RequiredPlayerKills`, `RewardItem1`, `RewardAmount1`, `RewardItem2`, `RewardAmount2`, `RewardItem3`, `RewardAmount3`, `RewardItem4`, `RewardAmount4`, `ItemDrop1`, `ItemDropQuantity1`, `ItemDrop2`, `ItemDropQuantity2`, `ItemDrop3`, `ItemDropQuantity3`, `ItemDrop4`, `ItemDropQuantity4`, `RewardChoiceItemID1`, `RewardChoiceItemQuantity1`, `RewardChoiceItemID2`, `RewardChoiceItemQuantity2`, `RewardChoiceItemID3`, `RewardChoiceItemQuantity3`, `RewardChoiceItemID4`, `RewardChoiceItemQuantity4`, `RewardChoiceItemID5`, `RewardChoiceItemQuantity5`, `RewardChoiceItemID6`, `RewardChoiceItemQuantity6`, `POIContinent`, `POIx`, `POIy`, `POIPriority`, `RewardTitle`, `RewardTalents`, `RewardArenaPoints`, `RewardFactionID1`, `RewardFactionValue1`, `RewardFactionOverride1`, `RewardFactionID2`, `RewardFactionValue2`, `RewardFactionOverride2`, `RewardFactionID3`, `RewardFactionValue3`, `RewardFactionOverride3`, `RewardFactionID4`, `RewardFactionValue4`, `RewardFactionOverride4`, `RewardFactionID5`, `RewardFactionValue5`, `RewardFactionOverride5`, `TimeAllowed`, `AllowableRaces`, `LogTitle`, `LogDescription`, `QuestDescription`, `AreaDescription`, `QuestCompletionLog`, `RequiredNpcOrGo1`, `RequiredNpcOrGo2`, `RequiredNpcOrGo3`, `RequiredNpcOrGo4`, `RequiredNpcOrGoCount1`, `RequiredNpcOrGoCount2`, `RequiredNpcOrGoCount3`, `RequiredNpcOrGoCount4`, `RequiredItemId1`, `RequiredItemId2`, `RequiredItemId3`, `RequiredItemId4`, `RequiredItemId5`, `RequiredItemId6`, `RequiredItemCount1`, `RequiredItemCount2`, `RequiredItemCount3`, `RequiredItemCount4`, `RequiredItemCount5`, `RequiredItemCount6`, `Unknown0`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `VerifiedBuild`) VALUES
 (84035, 2, 85, 80, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 608, 0, 84035, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'The Song of the Waterfall', 'Perhaps you should find the place shown in the book?', 'The book holds nothing but a faded picture of a place you feel you know...\r\n|TInterface\\Icons\\Papoti_weapon_801035:256|t', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Perhaps you should find the place shown in the book?', '', '', '', 0),
 (84036, 2, 85, 80, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 608, 0, 84036, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'The Laughing Brewer', 'Perhaps you should find the place shown in the book?', 'The book holds nothing but a faded picture of a place you feel you know...\r\n|TInterface\\Icons\\Papoti_weapon_801036:256|t', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Perhaps you should find the place shown in the book?', '', '', '', 0),
-(84037, 2, 85, 80, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 608, 0, 84037, 1, 84038, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Above the Storm', 'Perhaps you should find the place shown in the book?', 'The book holds nothing but a faded picture of a place you feel you know...\r\n|TInterface\\Icons\\Papoti_weapon_801037:256|t', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Perhaps you should find the place shown in the book?', '', '', '', 0);
+(84037, 2, 85, 80, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 608, 0, 84037, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Above the Storm', 'Perhaps you should find the place shown in the book?', 'The book holds nothing but a faded picture of a place you feel you know...\r\n|TInterface\\Icons\\Papoti_weapon_801037:256|t', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Perhaps you should find the place shown in the book?', '', '', '', 0),
+(84038, 2, 85, 80, 0, 83, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 608, 0, 84038, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Where the Wind Turns', 'Perhaps you should find the place shown in the book?', 'The book holds nothing but a faded picture of a place you feel you know...\r\n|TInterface\\Icons\\Papoti_weapon_801038:256|t', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Perhaps you should find the place shown in the book?', '', '', '', 0);
 
-DELETE FROM `quest_template_addon` WHERE ID BETWEEN 84035 AND 84037;
+DELETE FROM `quest_template_addon` WHERE ID BETWEEN 84035 AND 84038;
 INSERT INTO `quest_template_addon` (`ID`, `MaxLevel`, `AllowableClasses`, `SourceSpellID`, `PrevQuestID`, `NextQuestID`, `ExclusiveGroup`, `BreadcrumbForQuestId`, `RewardMailTemplateID`, `RewardMailDelay`, `RequiredSkillID`, `RequiredSkillPoints`, `RequiredMinRepFaction`, `RequiredMaxRepFaction`, `RequiredMinRepValue`, `RequiredMaxRepValue`, `ProvidedItemCount`, `SpecialFlags`) VALUES
 (84035, 0, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 (84036, 0, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-(84037, 0, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+(84037, 0, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+(84038, 0, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-DELETE FROM `quest_offer_reward` WHERE ID BETWEEN 84035 AND 84037;
+DELETE FROM `quest_offer_reward` WHERE ID BETWEEN 84035 AND 84038;
 INSERT INTO `quest_offer_reward` (`ID`, `Emote1`, `Emote2`, `Emote3`, `Emote4`, `EmoteDelay1`, `EmoteDelay2`, `EmoteDelay3`, `EmoteDelay4`, `RewardText`, `VerifiedBuild`) VALUES
 (84035, 0, 0, 0, 0, 0, 0, 0, 0, 'You came a long way. The weapon has been waiting for you.', 0),
 (84036, 0, 0, 0, 0, 0, 0, 0, 0, 'You came a long way. The weapon has been waiting for you.', 0),
-(84037, 0, 0, 0, 0, 0, 0, 0, 0, 'You came a long way. The weapon has been waiting for you.', 0);
+(84037, 0, 0, 0, 0, 0, 0, 0, 0, 'You came a long way. The weapon has been waiting for you.', 0),
+(84038, 0, 0, 0, 0, 0, 0, 0, 0, 'You came a long way. The weapon has been waiting for you.', 0);
 
-DELETE FROM `creature_questender` WHERE quest BETWEEN 84035 AND 84037;
+DELETE FROM `creature_questender` WHERE quest BETWEEN 84035 AND 84038;
 INSERT INTO `creature_questender` (`id`, `quest`) VALUES
 (84035, 84035),
 (84036, 84036),
-(84037, 84037);
+(84037, 84037),
+(84038, 84038);
 
-DELETE FROM `quest_template_locale` WHERE ID BETWEEN 84035 AND 84037;
+DELETE FROM `quest_template_locale` WHERE ID BETWEEN 84035 AND 84038;
 INSERT INTO `quest_template_locale` (`ID`, `locale`, `Title`, `Details`, `Objectives`, `EndText`, `CompletedText`, `ObjectiveText1`, `ObjectiveText2`, `ObjectiveText3`, `ObjectiveText4`, `VerifiedBuild`) VALUES
 (84035, 'frFR', 'Le chant de la cascade', 'Le livre ne contient qu\'une image dégradée d\'un lieu que vous avez l\'impression de connaître...\r\n|TInterface\\Icons\\Papoti_weapon_801035:256|t', 'Peut-être qu\'il faut trouver le lieu indiqué dans le livre ?', '', '', 'Peut-être qu\'il faut trouver le lieu indiqué dans le livre ?', '', '', '', 0),
 (84035, 'deDE', 'Das Lied des Wasserfalls', 'Das Buch enthält nichts als ein verblasstes Bild eines Ortes, der Euch bekannt vorkommt...\r\n|TInterface\\Icons\\Papoti_weapon_801035:256|t', 'Vielleicht solltet Ihr den Ort finden, der im Buch abgebildet ist?', '', '', 'Vielleicht solltet Ihr den Ort finden, der im Buch abgebildet ist?', '', '', '', 0),
@@ -171,9 +187,13 @@ INSERT INTO `quest_template_locale` (`ID`, `locale`, `Title`, `Details`, `Object
 (84037, 'frFR', 'Au-dessus de l’orage', 'Le livre ne contient qu\'une image dégradée d\'un lieu que vous avez l\'impression de connaître...\r\n|TInterface\\Icons\\Papoti_weapon_801037:256|t', 'Peut-être qu\'il faut trouver le lieu indiqué dans le livre ?', '', '', 'Peut-être qu\'il faut trouver le lieu indiqué dans le livre ?', '', '', '', 0),
 (84037, 'deDE', 'Über dem Sturm', 'Das Buch enthält nichts als ein verblasstes Bild eines Ortes, der Euch bekannt vorkommt...\r\n|TInterface\\Icons\\Papoti_weapon_801037:256|t', 'Vielleicht solltet Ihr den Ort finden, der im Buch abgebildet ist?', '', '', 'Vielleicht solltet Ihr den Ort finden, der im Buch abgebildet ist?', '', '', '', 0),
 (84037, 'esES', 'Por encima de la tormenta', 'El libro no contiene más que una imagen desvaída de un lugar que crees conocer...\r\n|TInterface\\Icons\\Papoti_weapon_801037:256|t', '¿Quizá deberías encontrar el lugar que aparece en el libro?', '', '', '¿Quizá deberías encontrar el lugar que aparece en el libro?', '', '', '', 0),
-(84037, 'ruRU', 'Над бурей', 'В книге нет ничего, кроме выцветшего изображения места, которое кажется вам знакомым...\r\n|TInterface\\Icons\\Papoti_weapon_801037:256|t', 'Может быть, стоит найти место, изображенное в книге?', '', '', 'Может быть, стоит найти место, изображенное в книге?', '', '', '', 0);
+(84037, 'ruRU', 'Над бурей', 'В книге нет ничего, кроме выцветшего изображения места, которое кажется вам знакомым...\r\n|TInterface\\Icons\\Papoti_weapon_801037:256|t', 'Может быть, стоит найти место, изображенное в книге?', '', '', 'Может быть, стоит найти место, изображенное в книге?', '', '', '', 0),
+(84038, 'frFR', 'Là où tourne le vent', 'Le livre ne contient qu\'une image dégradée d\'un lieu que vous avez l\'impression de connaître...\r\n|TInterface\\Icons\\Papoti_weapon_801038:256|t', 'Peut-être qu\'il faut trouver le lieu indiqué dans le livre ?', '', '', 'Peut-être qu\'il faut trouver le lieu indiqué dans le livre ?', '', '', '', 0),
+(84038, 'deDE', 'Wo der Wind dreht', 'Das Buch enthält nichts als ein verblasstes Bild eines Ortes, der Euch bekannt vorkommt...\r\n|TInterface\\Icons\\Papoti_weapon_801038:256|t', 'Vielleicht solltet Ihr den Ort finden, der im Buch abgebildet ist?', '', '', 'Vielleicht solltet Ihr den Ort finden, der im Buch abgebildet ist?', '', '', '', 0),
+(84038, 'esES', 'Donde gira el viento', 'El libro no contiene más que una imagen desvaída de un lugar que crees conocer...\r\n|TInterface\\Icons\\Papoti_weapon_801038:256|t', '¿Quizá deberías encontrar el lugar que aparece en el libro?', '', '', '¿Quizá deberías encontrar el lugar que aparece en el libro?', '', '', '', 0),
+(84038, 'ruRU', 'Там, где поворачивает ветер', 'В книге нет ничего, кроме выцветшего изображения места, которое кажется вам знакомым...\r\n|TInterface\\Icons\\Papoti_weapon_801038:256|t', 'Может быть, стоит найти место, изображенное в книге?', '', '', 'Может быть, стоит найти место, изображенное в книге?', '', '', '', 0);
 
-DELETE FROM `quest_offer_reward_locale` WHERE ID BETWEEN 84035 AND 84037;
+DELETE FROM `quest_offer_reward_locale` WHERE ID BETWEEN 84035 AND 84038;
 INSERT INTO `quest_offer_reward_locale` (`ID`, `locale`, `RewardText`, `VerifiedBuild`) VALUES
 (84035, 'frFR', 'Tu as fait un long chemin. L\'arme t\'attendait.', 0),
 (84035, 'deDE', 'Du hast einen weiten Weg hinter dir. Die Waffe hat auf dich gewartet.', 0),
@@ -186,11 +206,16 @@ INSERT INTO `quest_offer_reward_locale` (`ID`, `locale`, `RewardText`, `Verified
 (84037, 'frFR', 'Tu as fait un long chemin. L\'arme t\'attendait.', 0),
 (84037, 'deDE', 'Du hast einen weiten Weg hinter dir. Die Waffe hat auf dich gewartet.', 0),
 (84037, 'esES', 'Has recorrido un largo camino. El arma te estaba esperando.', 0),
-(84037, 'ruRU', 'Ты прошел долгий путь. Оружие ждало тебя.', 0);
+(84037, 'ruRU', 'Ты прошел долгий путь. Оружие ждало тебя.', 0),
+(84038, 'frFR', 'Tu as fait un long chemin. L\'arme t\'attendait.', 0),
+(84038, 'deDE', 'Du hast einen weiten Weg hinter dir. Die Waffe hat auf dich gewartet.', 0),
+(84038, 'esES', 'Has recorrido un largo camino. El arma te estaba esperando.', 0),
+(84038, 'ruRU', 'Ты прошел долгий путь. Оружие ждало тебя.', 0);
 
-DELETE FROM `reference_loot_template` WHERE Entry = 84000 AND Item BETWEEN 84135 AND 84137;
+DELETE FROM `reference_loot_template` WHERE Entry = 84000 AND Item BETWEEN 84135 AND 84138;
 INSERT INTO `reference_loot_template` (`Entry`, `Item`, `Reference`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES
 (84000, 84135, 0, 3.125, 0, 1, 0, 1, 1, ''),
 (84000, 84136, 0, 3.125, 0, 1, 0, 1, 1, ''),
-(84000, 84137, 0, 3.125, 0, 1, 0, 1, 1, '');
+(84000, 84137, 0, 3.125, 0, 1, 0, 1, 1, ''),
+(84000, 84138, 0, 3.125, 0, 1, 0, 1, 1, '');
 

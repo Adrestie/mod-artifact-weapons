@@ -4546,7 +4546,7 @@
     ],
     [
      84135,
-     84137
+     84138
     ]
    ],
    "rows": [
@@ -4617,6 +4617,16 @@
      -1,
      0,
      7139,
+     0,
+     0
+    ],
+    [
+     84138,
+     15,
+     4,
+     -1,
+     0,
+     7695,
      0,
      0
     ]
@@ -4993,19 +5003,19 @@
     },
     {
      "table": "item_template",
-     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84135 AND 84137"
+     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84135 AND 84138"
     },
     {
      "table": "item_template_locale",
-     "where": "ID BETWEEN 84035 AND 84038 OR ID BETWEEN 84135 AND 84137"
+     "where": "ID BETWEEN 84035 AND 84038 OR ID BETWEEN 84135 AND 84138"
     },
     {
      "table": "creature_template",
-     "where": "entry BETWEEN 84035 AND 84037 OR entry BETWEEN 84205 AND 84206"
+     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206"
     },
     {
      "table": "creature_template_model",
-     "where": "CreatureID BETWEEN 84035 AND 84037 OR CreatureID BETWEEN 84205 AND 84206"
+     "where": "CreatureID BETWEEN 84035 AND 84038 OR CreatureID BETWEEN 84205 AND 84206"
     },
     {
      "table": "creature_model_info",
@@ -5013,39 +5023,39 @@
     },
     {
      "table": "creature_template_locale",
-     "where": "entry BETWEEN 84035 AND 84037 OR entry BETWEEN 84205 AND 84206"
+     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206"
     },
     {
      "table": "creature",
-     "where": "guid BETWEEN 8400035 AND 8400037"
+     "where": "guid BETWEEN 8400035 AND 8400038"
     },
     {
      "table": "quest_template",
-     "where": "ID BETWEEN 84035 AND 84037"
+     "where": "ID BETWEEN 84035 AND 84038"
     },
     {
      "table": "quest_template_addon",
-     "where": "ID BETWEEN 84035 AND 84037"
+     "where": "ID BETWEEN 84035 AND 84038"
     },
     {
      "table": "quest_offer_reward",
-     "where": "ID BETWEEN 84035 AND 84037"
+     "where": "ID BETWEEN 84035 AND 84038"
     },
     {
      "table": "creature_questender",
-     "where": "quest BETWEEN 84035 AND 84037"
+     "where": "quest BETWEEN 84035 AND 84038"
     },
     {
      "table": "quest_template_locale",
-     "where": "ID BETWEEN 84035 AND 84037"
+     "where": "ID BETWEEN 84035 AND 84038"
     },
     {
      "table": "quest_offer_reward_locale",
-     "where": "ID BETWEEN 84035 AND 84037"
+     "where": "ID BETWEEN 84035 AND 84038"
     },
     {
      "table": "reference_loot_template",
-     "where": "Entry = 84000 AND Item BETWEEN 84135 AND 84137"
+     "where": "Entry = 84000 AND Item BETWEEN 84135 AND 84138"
     }
    ]
   }
