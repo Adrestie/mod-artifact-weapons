@@ -15,8 +15,7 @@ data/client/ (modèles, textures, icônes, images des quêtes).
 Les sorts du Moine visés sont ceux de mod-custom-classes (version installée affc0a8) : Paume du tigre 81113,
 Poings de fureur 81198, Brume apaisante 81771 et celle de la statue 81896, les breuvages (src/monk_weapons.cpp).
 
-PROVISOIRE (en attente de Maitre, à remplacer sans toucher au reste) : les emplacements des quatre PNJ des quêtes
-(PNJ_*), les images des quêtes (tools/quest_picture.py, depuis la carte du monde).
+PROVISOIRE : les images des quêtes que Maitre n'a pas encore validées (tools/quest_picture.py, depuis la carte du monde).
 """
 import json
 import os
@@ -61,17 +60,18 @@ SPELL_BLOCKS = [[84460, 84479], [84920, 84939], [84960, 84999]]
 
 # les PNJ des quêtes : la plante des 32 autres armes (affichage 8391) et un nom sur le modèle des leurs (les syllabes
 # de Korogu, le russe en cyrillique ; Maitre, fil des armes, 24/10 22:54-22:56 UTC : Gokuro, Rukogo, Gurok'o, Okurog). Un PNJ par quête.
-# PROVISOIRE : leurs emplacements (en attente de Maitre)
+# leurs emplacements : ceux où Maitre les a posés sur le test (24/10/2026 23:10 UTC ; ses spawns 9700016-9700019),
+# carte, zone, sous-zone, x, y, z, orientation
 PNJ_DISPLAY = 8391
 PNJ = {
     YUWU: {"name": {"enUS": "Gokuro", "frFR": "Gokuro", "deDE": "Gokuro", "esES": "Gokuro", "ruRU": "Гокуро"},
-           "spot": (571, 5120.6, 5469.7, -91.7, 3.1), "zone": "SholazarBasin"},          # la cascade de la Gorge de Sholazar
+           "spot": (0, 41, 2562, -11189.447, -1859.662, 74.556, 0.5227)},                 # Défilé de Deuillevent, Karazhan (la tour)
     JINGU: {"name": {"enUS": "Rukogo", "frFR": "Rukogo", "deDE": "Rukogo", "esES": "Rukogo", "ruRU": "Рукого"},
-            "spot": (571, 7084.5, -1938.0, 772.4, 1.6), "zone": "TheStormPeaks"},         # Brumeterre, Pics foudroyés
+            "spot": (530, 3540, 3540, 1779.906, 2360.698, 25.028, 0.834)},                 # Le Néant distordu (le bateau)
     TIANLEI: {"name": {"enUS": "Gurok'o", "frFR": "Gurok'o", "deDE": "Gurok'o", "esES": "Gurok'o", "ruRU": "Гурок'о"},
-              "spot": (571, 8395.5, -392.9, 903.2, 3.1), "zone": "TheStormPeaks"},       # au pied d'Ulduar extérieur
+              "spot": (571, 67, 4430, 7476.672, -586.118, 1968.066, 2.3045)},              # Les pics Foudroyés, Temple des Tempêtes (la rotonde)
     TIANFENG: {"name": {"enUS": "Okurog", "frFR": "Okurog", "deDE": "Okurog", "esES": "Okurog", "ruRU": "Окурог"},
-               "spot": (571, 8401.5, -387.9, 903.2, 3.1), "zone": "TheStormPeaks"},      # au pied d'Ulduar extérieur, à côté
+               "spot": (530, 3483, 3483, 78.913, 700.733, -4.776, 2.0593)},                 # Péninsule des Flammes infernales (la porte)
 }
 
 # ------------------------------------------------------------------ textes
@@ -667,9 +667,10 @@ def main():
         rows.append([row[c] for c in ct])
         models_sql.append([QUEST[qid], 0, PNJ_DISPLAY, 1, 1, 0])
         locs += [[QUEST[qid], lang, p["name"][lang], "", 0] for lang in LOCALES]
-        m, x, y, z, o = p["spot"]
+        m, zone, area, x, y, z, o = p["spot"]
         sp = copy_row(T, "creature", "guid", 8400025)
-        sp.update({"guid": SPAWN_GUID[qid], "id": QUEST[qid], "map": m, "position_x": x, "position_y": y, "position_z": z, "orientation": o})
+        sp.update({"guid": SPAWN_GUID[qid], "id": QUEST[qid], "map": m, "zoneId": zone, "areaId": area,
+                   "position_x": x, "position_y": y, "position_z": z, "orientation": o})
         spawns.append([sp[c] for c in T["creature"]["cols"]])
     for cid, name, script in ((NPC_YULON, N["yulon"], "npc_yuwu_yulon"), (NPC_CRANE, N["crosswinds"], "npc_tian_feng_grue")):
         row = copy_row(T, "creature_template", "entry", 84200)
@@ -687,7 +688,9 @@ def main():
                       [[NPC_YULON, 1.0, 1.5, 2, 0], [NPC_CRANE, 0.5, 1.0, 2, 0]]) + [""]
     out_sql += ["DELETE FROM `creature_template_locale` WHERE %s;" % ids]
     out_sql += insert("creature_template_locale", T["creature_template_locale"]["cols"], locs) + [""]
-    out_sql += ["DELETE FROM `creature` WHERE guid BETWEEN %d AND %d;" % (SPAWN_GUID[YUWU], SPAWN_GUID[TIANFENG])]
+    # tout spawn de ces quatre PNJ s'en va d'abord (un posé à la main sur un royaume, une installation d'avant) : un PNJ par arme
+    out_sql += ["DELETE FROM `creature` WHERE id BETWEEN %d AND %d OR guid BETWEEN %d AND %d;"
+                % (QUEST[YUWU], QUEST[TIANFENG], SPAWN_GUID[YUWU], SPAWN_GUID[TIANFENG])]
     out_sql += insert("creature", T["creature"]["cols"], spawns) + [""]
 
     # --- les quêtes
@@ -747,7 +750,7 @@ def main():
         {"table": "creature_template", "where": ids}, {"table": "creature_template_model", "where": ids.replace("entry", "CreatureID")},
         {"table": "creature_model_info", "where": "DisplayID BETWEEN %d AND %d" % (NPC_YULON, NPC_CRANE)},
         {"table": "creature_template_locale", "where": ids},
-        {"table": "creature", "where": "guid BETWEEN %d AND %d" % (SPAWN_GUID[YUWU], SPAWN_GUID[TIANFENG])},
+        {"table": "creature", "where": "id BETWEEN %d AND %d OR guid BETWEEN %d AND %d" % (QUEST[YUWU], QUEST[TIANFENG], SPAWN_GUID[YUWU], SPAWN_GUID[TIANFENG])},
         {"table": "quest_template", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
         {"table": "quest_template_addon", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
         {"table": "quest_offer_reward", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},

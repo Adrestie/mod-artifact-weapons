@@ -5035,7 +5035,7 @@
     },
     {
      "table": "creature",
-     "where": "guid BETWEEN 8400035 AND 8400038"
+     "where": "id BETWEEN 84035 AND 84038 OR guid BETWEEN 8400035 AND 8400038"
     },
     {
      "table": "quest_template",
