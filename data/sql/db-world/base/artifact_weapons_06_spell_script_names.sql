@@ -1,6 +1,6 @@
 -- Extrait de acore_world_hard.spell_script_names, tel quel, le 2026-09-28.
 -- Clause : ABS(spell_id) BETWEEN 84300 AND 84999
-DELETE FROM `spell_script_names` WHERE ABS(spell_id) BETWEEN 84300 AND 84999;
+DELETE FROM `spell_script_names` WHERE (ABS(spell_id) BETWEEN 84300 AND 84459 OR ABS(spell_id) BETWEEN 84480 AND 84919 OR ABS(spell_id) BETWEEN 84940 AND 84959);
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84320,'spell_nairun_appel_des_anciens');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84340,'spell_kelrah_etreinte_des_esprits');
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES (84427,'spell_xerthul_nuee_demoniaque');

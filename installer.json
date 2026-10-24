@@ -4,7 +4,8 @@
   "title": "Artifact weapons",
   "fields": {"game": "required", "worldserver": "required", "sources": "required", "mysql": "required"},
   "signature": ["src/papota_spells.cpp", "src/MP_loader.cpp"],
-  "exclude_from_sources": ["data/client", "data/client-surcharges", "data/dbc"],
+  "exclude_from_sources": ["data/client", "data/client-surcharges", "data/dbc", "data/parts", "tools"],
+  "parts": [{"name": "monk", "title": "Artifact weapons: Monk", "requires": {"classes": [10]}, "folder": "data/parts/monk"}],
   "dbc": [
     {
       "file": "Item.dbc",
@@ -88,31 +89,31 @@
         },
         {
           "table": "spell_dbc",
-          "where": "ID BETWEEN 84300 AND 84999"
+          "where": "(ID BETWEEN 84300 AND 84459 OR ID BETWEEN 84480 AND 84919 OR ID BETWEEN 84940 AND 84959)"
         },
         {
           "table": "spell_proc",
-          "where": "ABS(SpellId) BETWEEN 84300 AND 84999"
+          "where": "(ABS(SpellId) BETWEEN 84300 AND 84459 OR ABS(SpellId) BETWEEN 84480 AND 84919 OR ABS(SpellId) BETWEEN 84940 AND 84959)"
         },
         {
           "table": "spell_bonus_data",
-          "where": "entry BETWEEN 84300 AND 84999"
+          "where": "(entry BETWEEN 84300 AND 84459 OR entry BETWEEN 84480 AND 84919 OR entry BETWEEN 84940 AND 84959)"
         },
         {
           "table": "spell_custom_attr",
-          "where": "spell_id BETWEEN 84300 AND 84999"
+          "where": "(spell_id BETWEEN 84300 AND 84459 OR spell_id BETWEEN 84480 AND 84919 OR spell_id BETWEEN 84940 AND 84959)"
         },
         {
           "table": "spell_script_names",
-          "where": "ABS(spell_id) BETWEEN 84300 AND 84999"
+          "where": "(ABS(spell_id) BETWEEN 84300 AND 84459 OR ABS(spell_id) BETWEEN 84480 AND 84919 OR ABS(spell_id) BETWEEN 84940 AND 84959)"
         },
         {
           "table": "spell_cooldown_overrides",
-          "where": "Id BETWEEN 84300 AND 84999"
+          "where": "(Id BETWEEN 84300 AND 84459 OR Id BETWEEN 84480 AND 84919 OR Id BETWEEN 84940 AND 84959)"
         },
         {
           "table": "spell_jump_distance",
-          "where": "ID BETWEEN 84300 AND 84999"
+          "where": "(ID BETWEEN 84300 AND 84459 OR ID BETWEEN 84480 AND 84919 OR ID BETWEEN 84940 AND 84959)"
         },
         {
           "table": "creature_template",

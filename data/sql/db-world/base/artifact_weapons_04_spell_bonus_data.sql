@@ -1,6 +1,6 @@
 -- Extrait de acore_world_hard.spell_bonus_data, tel quel, le 2026-09-28.
 -- Clause : entry BETWEEN 84300 AND 84999
-DELETE FROM `spell_bonus_data` WHERE entry BETWEEN 84300 AND 84999;
+DELETE FROM `spell_bonus_data` WHERE (entry BETWEEN 84300 AND 84459 OR entry BETWEEN 84480 AND 84919 OR entry BETWEEN 84940 AND 84959);
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84300,0.2326,0,0,0,'Ezh ra - Grondement - x1.5 CL rg8 +5% (1532-1749), rebonds -30%');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84302,0.05625,0,0,0,'Ezh ra - Ascension - base +10% (436-479), 24 impulsions / 8 s');
 INSERT INTO `spell_bonus_data` (`entry`, `direct_bonus`, `dot_bonus`, `ap_bonus`, `ap_dot_bonus`, `comments`) VALUES (84321,0.22,0,0,0,'Nairun - Chaine des Anciens - Salve rg max x1.0, coef identique');
