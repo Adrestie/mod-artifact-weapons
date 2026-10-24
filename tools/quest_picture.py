@@ -1,4 +1,4 @@
-"""L'image d'une quête d'arme (512 x 512, filtre « cristallisé » comme les 32 autres) fabriquée depuis la carte du
+"""L'image d'une quête d'arme (512 x 512, BLP2 DXT1 sans alpha avec mipmaps, filtre « cristallisé » comme les 32 autres) fabriquée depuis la carte du
 monde du jeu, centrée sur le lieu du PNJ. Image provisoire : une capture d'écran du lieu la remplace en passant
 --capture (elle reçoit alors le même filtre).
 
@@ -97,11 +97,64 @@ def crystallize(image, seed):
     return out
 
 
+def _dxt1(rgb):
+    """les blocs DXT1 d'une image RGB (numpy, hauteur x largeur x 3, côtés multiples de 4) : deux couleurs extrêmes
+    de chaque bloc 4 x 4 (sa plus sombre et sa plus claire), les quatre teintes entre elles, le texel à la plus proche"""
+    import numpy as np
+    h, w, _ = rgb.shape
+    blocks = rgb.reshape(h // 4, 4, w // 4, 4, 3).transpose(0, 2, 1, 3, 4).reshape(-1, 16, 3).astype(np.float32)
+    lum = blocks @ np.array([0.299, 0.587, 0.114], np.float32)
+    c0 = blocks[np.arange(len(blocks)), lum.argmax(1)]
+    c1 = blocks[np.arange(len(blocks)), lum.argmin(1)]
+
+    def to565(c):
+        c = np.clip(np.rint(c), 0, 255).astype(np.uint32)
+        return ((c[:, 0] >> 3) << 11) | ((c[:, 1] >> 2) << 5) | (c[:, 2] >> 3)
+
+    def from565(v):
+        return np.stack([((v >> 11) & 31) * 255 / 31, ((v >> 5) & 63) * 255 / 63, (v & 31) * 255 / 31], 1).astype(np.float32)
+    v0, v1 = to565(c0), to565(c1)
+    swap = v0 < v1
+    v0, v1 = np.where(swap, v1, v0), np.where(swap, v0, v1)
+    e0, e1 = from565(v0), from565(v1)
+    palette = np.stack([e0, e1, (2 * e0 + e1) / 3, (e0 + 2 * e1) / 3], 1)              # mode 4 couleurs (v0 > v1)
+    same = v0 == v1
+    dist = ((blocks[:, :, None, :] - palette[:, None, :, :]) ** 2).sum(-1)
+    index = dist.argmin(2).astype(np.uint32)
+    index[same] = 0
+    bits = (index << (2 * np.arange(16, dtype=np.uint32))).sum(1).astype(np.uint32)
+    out = np.zeros((len(blocks), 2), np.uint32)
+    out[:, 0] = v0 | (v1 << 16)
+    out[:, 1] = bits
+    return out.astype("<u4").tobytes()
+
+
 def blp_rgb(image):
-    """un BLP2 non compressé à palette (celui des images des 32 autres : 512 x 512, sans alpha)"""
-    sys.path.insert(0, r"E:\WoW-mods\mod-custom-classes\tools")
-    from ccgen.talents import blp2
-    return blp2(image.convert("RGBA"))
+    """un BLP2 DXT1 sans alpha, avec ses mipmaps jusqu'à 1 x 1 (le format des images des 32 autres armes : encodage 2,
+    profondeur d'alpha 0, mipmaps)"""
+    import numpy as np
+    w, h = image.size
+    levels = []
+    while True:
+        level = image.resize((w, h), Image.LANCZOS) if levels else image
+        pw, ph = max(4, w), max(4, h)
+        canvas = Image.new("RGB", (pw, ph))
+        canvas.paste(level, (0, 0))
+        levels.append(_dxt1(np.asarray(canvas, dtype=np.uint8)))
+        if w == 1 and h == 1:
+            break
+        w, h = max(1, w // 2), max(1, h // 2)
+    header_size = 4 + 4 + 4 + 8 + 16 * 4 * 2 + 256 * 4
+    offsets, sizes, at = [], [], header_size
+    for data in levels:
+        offsets.append(at)
+        sizes.append(len(data))
+        at += len(data)
+    head = b"BLP2" + struct.pack("<I4B2I", 1, 2, 0, 0, 1, image.size[0], image.size[1])
+    head += struct.pack("<16I", *(offsets + [0] * (16 - len(offsets))))
+    head += struct.pack("<16I", *(sizes + [0] * (16 - len(sizes))))
+    head += bytes(256 * 4)
+    return head + b"".join(levels)
 
 
 def main():

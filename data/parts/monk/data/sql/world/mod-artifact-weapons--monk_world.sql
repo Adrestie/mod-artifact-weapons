@@ -91,10 +91,10 @@ INSERT INTO `item_template_locale` (`ID`, `locale`, `Name`, `Description`, `Veri
 
 DELETE FROM `creature_template` WHERE entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206;
 INSERT INTO `creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `speed_swim`, `speed_flight`, `detection_range`, `rank`, `dmgschool`, `DamageModifier`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `CreatureImmunitiesId`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES
-(84035, 0, 0, 0, 0, 0, 'Gukoru', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
+(84035, 0, 0, 0, 0, 0, 'Gokuro', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
 (84036, 0, 0, 0, 0, 0, 'Rukogo', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
-(84037, 0, 0, 0, 0, 0, 'Gorogu', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
-(84038, 0, 0, 0, 0, 0, 'Kuroko', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
+(84037, 0, 0, 0, 0, 0, 'Gurok\'o', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
+(84038, 0, 0, 0, 0, 0, 'Okurog', '', '', 0, 80, 80, 0, 35, 2, 1, 1.14286, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, '', 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, '', 0),
 (84205, 0, 0, 0, 0, 0, 'Yu\'lon', '', NULL, 0, 80, 80, 2, 35, 0, 1, 1.14286, 1, 1, 20, 0, 0, 1, 2000, 2000, 1, 1, 1, 33554434, 0, 0, 0, 3, 72, 0, 0, 0, 0, 0, 0, 0, '', 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 'npc_yuwu_yulon', NULL),
 (84206, 0, 0, 0, 0, 0, 'Crosswinds', '', NULL, 0, 80, 80, 2, 35, 0, 1, 1.14286, 1, 1, 20, 0, 0, 1, 2000, 2000, 1, 1, 1, 33554434, 0, 0, 0, 3, 72, 0, 0, 0, 0, 0, 0, 0, '', 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 2, 'npc_tian_feng_grue', NULL);
 
@@ -114,22 +114,22 @@ INSERT INTO `creature_model_info` (`DisplayID`, `BoundingRadius`, `CombatReach`,
 
 DELETE FROM `creature_template_locale` WHERE entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206;
 INSERT INTO `creature_template_locale` (`entry`, `locale`, `Name`, `Title`, `VerifiedBuild`) VALUES
-(84035, 'frFR', 'Gukoru', '', 0),
-(84035, 'deDE', 'Gukoru', '', 0),
-(84035, 'esES', 'Gukoru', '', 0),
-(84035, 'ruRU', 'Гукору', '', 0),
+(84035, 'frFR', 'Gokuro', '', 0),
+(84035, 'deDE', 'Gokuro', '', 0),
+(84035, 'esES', 'Gokuro', '', 0),
+(84035, 'ruRU', 'Гокуро', '', 0),
 (84036, 'frFR', 'Rukogo', '', 0),
 (84036, 'deDE', 'Rukogo', '', 0),
 (84036, 'esES', 'Rukogo', '', 0),
 (84036, 'ruRU', 'Рукого', '', 0),
-(84037, 'frFR', 'Gorogu', '', 0),
-(84037, 'deDE', 'Gorogu', '', 0),
-(84037, 'esES', 'Gorogu', '', 0),
-(84037, 'ruRU', 'Горогу', '', 0),
-(84038, 'frFR', 'Kuroko', '', 0),
-(84038, 'deDE', 'Kuroko', '', 0),
-(84038, 'esES', 'Kuroko', '', 0),
-(84038, 'ruRU', 'Куроко', '', 0),
+(84037, 'frFR', 'Gurok\'o', '', 0),
+(84037, 'deDE', 'Gurok\'o', '', 0),
+(84037, 'esES', 'Gurok\'o', '', 0),
+(84037, 'ruRU', 'Гурок\'о', '', 0),
+(84038, 'frFR', 'Okurog', '', 0),
+(84038, 'deDE', 'Okurog', '', 0),
+(84038, 'esES', 'Okurog', '', 0),
+(84038, 'ruRU', 'Окурог', '', 0),
 (84205, 'frFR', 'Yu’lon', '', 0),
 (84205, 'deDE', 'Yu\'lon', '', 0),
 (84205, 'esES', 'Yu\'lon', '', 0),

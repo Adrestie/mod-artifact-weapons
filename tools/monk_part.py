@@ -60,17 +60,17 @@ S_WINDLORD_SET, S_WINDLORD, S_WINDLORD_OFF = 84463, 84464, 84465
 SPELL_BLOCKS = [[84460, 84479], [84920, 84939], [84960, 84999]]
 
 # les PNJ des quêtes : la plante des 32 autres armes (affichage 8391) et un nom sur le modèle des leurs (les syllabes
-# de Korogu, le russe en cyrillique ; Maitre, fil des armes, 24/10 22:54 UTC). Un PNJ par quête.
+# de Korogu, le russe en cyrillique ; Maitre, fil des armes, 24/10 22:54-22:56 UTC : Gokuro, Rukogo, Gurok'o, Okurog). Un PNJ par quête.
 # PROVISOIRE : leurs emplacements (en attente de Maitre)
 PNJ_DISPLAY = 8391
 PNJ = {
-    YUWU: {"name": {"enUS": "Gukoru", "frFR": "Gukoru", "deDE": "Gukoru", "esES": "Gukoru", "ruRU": "Гукору"},
+    YUWU: {"name": {"enUS": "Gokuro", "frFR": "Gokuro", "deDE": "Gokuro", "esES": "Gokuro", "ruRU": "Гокуро"},
            "spot": (571, 5120.6, 5469.7, -91.7, 3.1), "zone": "SholazarBasin"},          # la cascade de la Gorge de Sholazar
     JINGU: {"name": {"enUS": "Rukogo", "frFR": "Rukogo", "deDE": "Rukogo", "esES": "Rukogo", "ruRU": "Рукого"},
             "spot": (571, 7084.5, -1938.0, 772.4, 1.6), "zone": "TheStormPeaks"},         # Brumeterre, Pics foudroyés
-    TIANLEI: {"name": {"enUS": "Gorogu", "frFR": "Gorogu", "deDE": "Gorogu", "esES": "Gorogu", "ruRU": "Горогу"},
+    TIANLEI: {"name": {"enUS": "Gurok'o", "frFR": "Gurok'o", "deDE": "Gurok'o", "esES": "Gurok'o", "ruRU": "Гурок'о"},
               "spot": (571, 8395.5, -392.9, 903.2, 3.1), "zone": "TheStormPeaks"},       # au pied d'Ulduar extérieur
-    TIANFENG: {"name": {"enUS": "Kuroko", "frFR": "Kuroko", "deDE": "Kuroko", "esES": "Kuroko", "ruRU": "Куроко"},
+    TIANFENG: {"name": {"enUS": "Okurog", "frFR": "Okurog", "deDE": "Okurog", "esES": "Okurog", "ruRU": "Окурог"},
                "spot": (571, 8401.5, -387.9, 903.2, 3.1), "zone": "TheStormPeaks"},      # au pied d'Ulduar extérieur, à côté
 }
 
