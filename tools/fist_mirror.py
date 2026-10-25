@@ -1,13 +1,16 @@
 """Le poing gauche de Tian Feng (84038) : copie miroir de hand_1h_artifactskywall_d_06 (Maitre, 24/10/2026 23:25 UTC ;
 le retail n'a pas de modèle gauche, ses seuls fichiers « _l » sont des présentoirs).
 
-    python tools/fist_mirror.py <dossier de travail>      (lit ported/, y écrit hand_1h_artifactskywall_d_06_l.m2 et sa skin)
+    python tools/fist_mirror.py <dossier de travail> [x|y|z]   (lit ported/, y écrit hand_1h_artifactskywall_d_06_l.m2 et sa skin)
 
-Le plan du miroir est x = 0 : x est l'axe pouce-auriculaire de l'arme (ses attaches 0 et 1 sont une paire symétrique en x) ;
-y (paume-dos) et z (la longueur) gardent la lame du bon côté. Changent de signe en x : sommets et normales, pivots et
-translations des os, points d'attache, événements, boîtes (du modèle et des séquences), centres des sous-maillages ; les
-rotations des os deviennent (x, -y, -z, w) ; l'ordre de chaque triangle est inversé pour que ses faces restent dehors.
-Les transformations de texture (des UV) ne bougent pas.
+Le plan du miroir est y = 0 par défaut : le plan sagittal du personnage. Les objets portés suivent ses axes (x vers l'avant,
+y vers sa gauche, z vers le haut), les attaches de 3.3.5 n'ont qu'une position, et le bras gauche s'anime en miroir du
+droit : une arme vue en main gauche est donc celle de la main droite reflétée en y. La première version reflétait x (les
+attaches 0 et 1 forment une paire en x) ; en jeu, le poing restait du mauvais côté (Maitre, 25/10/2026 23:44 UTC).
+Changent de signe sur l'axe choisi : sommets et normales, pivots et translations des os, points d'attache, événements,
+boîtes (du modèle et des séquences), centres des sous-maillages ; les rotations des os gardent la composante de l'axe et
+changent le signe des deux autres ; l'ordre de chaque triangle est inversé pour que ses faces restent dehors. Les
+transformations de texture (des UV) ne bougent pas.
 """
 import os, struct, sys
 sys.path.insert(0, r"E:\WoW-mods\mod-limit-break\tools\m2port")
@@ -17,15 +20,21 @@ NAME = "hand_1h_artifactskywall_d_06"
 LEFT = NAME + "_l"
 
 
+AXIS = 1                                       # 0 x, 1 y, 2 z : l'axe nié
+
+
 def flip(v):
-    return (-v[0],) + tuple(v[1:])
+    v = list(v)
+    v[AXIS] = -v[AXIS]
+    return tuple(v)
 
 
 def flip_box(raw, at):
     """une boîte (min xyz, max xyz) à l'octet at de raw"""
-    lo = struct.unpack_from("<3f", raw, at)
-    hi = struct.unpack_from("<3f", raw, at + 12)
-    return raw[:at] + struct.pack("<6f", -hi[0], lo[1], lo[2], -lo[0], hi[1], hi[2]) + raw[at + 24:]
+    lo = list(struct.unpack_from("<3f", raw, at))
+    hi = list(struct.unpack_from("<3f", raw, at + 12))
+    lo[AXIS], hi[AXIS] = -hi[AXIS], -lo[AXIS]
+    return raw[:at] + struct.pack("<6f", *lo, *hi) + raw[at + 24:]
 
 
 def flip_track(tr, kind):
@@ -33,11 +42,12 @@ def flip_track(tr, kind):
         for i, v in enumerate(seq):
             if kind == "vec3":
                 seq[i] = flip(v)
-            else:                                  # quat ou compquat : (x, y, z, w) -> (x, -y, -z, w)
-                y, z = -v[1], -v[2]
+            else:                                  # quat ou compquat : l'axe garde son signe, les deux autres le perdent
+                q = [-c for c in v[:3]]
+                q[AXIS] = v[AXIS]
                 if kind == "compquat":
-                    y, z = max(-32767, min(32767, y)), max(-32767, min(32767, z))
-                seq[i] = (v[0], y, z, v[3])
+                    q = [max(-32767, min(32767, c)) for c in q]
+                seq[i] = tuple(q) + (v[3],)
 
 
 def mirror(m, skin):
@@ -45,8 +55,8 @@ def mirror(m, skin):
     for v in m["vertices"]:
         raw = bytearray(v["raw"])
         for at in (0, 20):                         # la position, puis la normale
-            x = struct.unpack_from("<f", raw, at)[0]
-            struct.pack_into("<f", raw, at, -x)
+            c = struct.unpack_from("<f", raw, at + 4 * AXIS)[0]
+            struct.pack_into("<f", raw, at + 4 * AXIS, -c)
         v["raw"] = bytes(raw)
     for b in m["bones"]:
         b["pivot"] = flip(b["pivot"])
@@ -70,6 +80,9 @@ def mirror(m, skin):
 
 
 def main():
+    global AXIS
+    if len(sys.argv) > 2:
+        AXIS = "xyz".index(sys.argv[2])
     d = os.path.join(sys.argv[1], "ported")
     m, extra = m2.read_file(open(os.path.join(d, NAME + ".m2"), "rb").read())
     assert not extra and m["num_skin"] == 1
