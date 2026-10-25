@@ -215,11 +215,11 @@ D = {
                  "deDE": "Verbraucht Eure Nebelwolken, um das freundliche Ziel pro Wolke um $s1 Gesundheit zu heilen.",
                  "esES": "Consume tus Nubes de bruma para sanar al objetivo aliado $s1 p. de salud por nube.",
                  "ruRU": "Расходует облака тумана, восполняя союзнику $s1 ед. здоровья за каждое облако."},
-    S_MISTS: {"enUS": "When your instant healing spells heal a target, you have a 10% chance to summon Yu'lon, who assists you in restoring the raid for $84965d: she casts your healing spells again on the most injured allies. Cannot occur more than once every 130 sec.",
-              "frFR": "Quand vos sorts de soin instantanés soignent une cible, vous avez 10% de chances d’invoquer Yu’lon, qui vous assiste pour restaurer le raid pendant $84965d : elle reproduit vos sorts de soin sur les alliés les plus blessés. Ne peut pas se produire plus d’une fois toutes les 130 s.",
-              "deDE": "Wenn Eure sofortigen Heilzauber ein Ziel heilen, besteht eine Chance von 10%, Yu'lon zu beschwören, die Euch $84965d lang beim Heilen des Schlachtzugs hilft: Sie wirkt Eure Heilzauber erneut auf die am schwersten verletzten Verbündeten. Kann nicht öfter als einmal alle 130 Sek. auftreten.",
-              "esES": "Cuando tus hechizos de sanación instantáneos sanan a un objetivo, tienes un 10% de probabilidad de invocar a Yu'lon, que te ayuda a restablecer a la banda durante $84965d: lanza de nuevo tus hechizos de sanación sobre los aliados más heridos. No puede ocurrir más de una vez cada 130 s.",
-              "ruRU": "Когда ваши мгновенные исцеляющие заклинания исцеляют цель, с вероятностью 10% призывается Юй-лун, которая помогает вам восстанавливать рейд в течение $84965d: она повторяет ваши исцеляющие заклинания на самых раненых союзниках. Не чаще одного раза в 130 сек."},
+    S_MISTS: {"enUS": "When your healing spells heal a target, you have a 10% chance to summon Yu'lon, who assists you in restoring the raid for $84965d: she casts your healing spells again on the most injured allies. Cannot occur more than once every 130 sec.",
+              "frFR": "Quand vos sorts de soin soignent une cible, vous avez 10% de chances d’invoquer Yu’lon, qui vous assiste pour restaurer le raid pendant $84965d : elle reproduit vos sorts de soin sur les alliés les plus blessés. Ne peut pas se produire plus d’une fois toutes les 130 s.",
+              "deDE": "Wenn Eure Heilzauber ein Ziel heilen, besteht eine Chance von 10%, Yu'lon zu beschwören, die Euch $84965d lang beim Heilen des Schlachtzugs hilft: Sie wirkt Eure Heilzauber erneut auf die am schwersten verletzten Verbündeten. Kann nicht öfter als einmal alle 130 Sek. auftreten.",
+              "esES": "Cuando tus hechizos de sanación sanan a un objetivo, tienes un 10% de probabilidad de invocar a Yu'lon, que te ayuda a restablecer a la banda durante $84965d: lanza de nuevo tus hechizos de sanación sobre los aliados más heridos. No puede ocurrir más de una vez cada 130 s.",
+              "ruRU": "Когда ваши исцеляющие заклинания исцеляют цель, с вероятностью 10% призывается Юй-лун, которая помогает вам восстанавливать рейд в течение $84965d: она повторяет ваши исцеляющие заклинания на самых раненых союзниках. Не чаще одного раза в 130 сек."},
     S_WHISPERS: {"enUS": "Your Soothing Mist and your Jade Serpent Statue's bounce to 2 additional allies, the most injured first, each bounce healing 33% less.",
                  "frFR": "Votre Brume apaisante et celle de votre statue du Serpent de jade rebondissent sur 2 alliés supplémentaires, les plus blessés d’abord, chaque rebond soignant 33% de moins.",
                  "deDE": "Euer Beruhigender Nebel und der Eurer Jadeschlangenstatue springen auf 2 weitere Verbündete über, die am schwersten verletzten zuerst; jeder Sprung heilt 33% weniger.",
@@ -383,7 +383,9 @@ def spells():
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_HealingTouch")
     effect(r, 1, Effect=6, Aura=4, TargetA=1, BasePoints=0)
     set_text(r, "Description", D[S_MISTS])
-    procs.append([S_MISTS, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 10, 130000, 0])
+    # tous les soins du Moine (Maitre, 25/10/2026 12:47 UTC, par le coordinateur) : ProcFlags des sorts positifs et des tics
+    # périodiques (0x400 | 0x4000 | 0x40000), les sorts déclenchés compris (AttributesMask 1)
+    procs.append([S_MISTS, 0, 0, 0, 0, 0, 0x44400, 2, 2, 0, 1, 0, 0, 10, 130000, 0])
     scripts.append([S_MISTS, "spell_yuwu_brumes"])
     r = add(blank_spell(S_YULON, N["yulon"]))
     r[FIELD["DurationIndex"]] = 29                         # 12 s

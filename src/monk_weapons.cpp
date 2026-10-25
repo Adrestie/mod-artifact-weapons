@@ -417,8 +417,10 @@ struct npc_yuwu_nuage : public ScriptedAI
 
 /*
  * spell_yuwu_brumes — sort 84964 (passif de Yu Wu)
- * Les ProcFlags prennent tous les soins faits ; le cahier dit « sort de soin instantané qui soigne une cible » :
- * un soin sans temps d'incantation, ni canalisé, qui a soigné. Les 10 % et les 130 s sont en base (spell_proc).
+ * Tous les soins du Moine (Maitre, 25/10/2026 12:47 UTC ; le cahier disait « instantané ») : directs, avec ou sans temps
+ * d'incantation, les tics périodiques (Brume apaisante, Brume de rénovation) et ses soins déclenchés (spell_proc :
+ * ProcFlags 0x44400, AttributesMask 1). Il faut qu'un soin ait soigné, et pas pendant que Yu'lon est là : ses copies
+ * ne la rappellent pas. Les 10 % et les 130 s sont en base (spell_proc).
  */
 class spell_yuwu_brumes : public AuraScript
 {
@@ -428,7 +430,18 @@ class spell_yuwu_brumes : public AuraScript
     {
         SpellInfo const* sort = eventInfo.GetSpellInfo();
         HealInfo const* soin = eventInfo.GetHealInfo();
-        return sort && soin && soin->GetHeal() > 0 && !sort->IsChanneled() && sort->CalcCastTime() == 0 && Soigne(sort);
+        Unit* moine = GetTarget();
+        if (!sort || !soin || soin->GetHeal() == 0 || !Soigne(sort) || !moine || copieDeYulon)
+            return false;
+        ObjectGuid yulonGuid;
+        {
+            std::lock_guard<std::mutex> garde(monkWeaponsLock);
+            auto it = yulonDuMoine.find(moine->GetGUID());
+            if (it != yulonDuMoine.end())
+                yulonGuid = it->second;
+        }
+        Creature* yulon = yulonGuid.IsEmpty() ? nullptr : ObjectAccessor::GetCreature(*moine, yulonGuid);
+        return !yulon || !yulon->IsAlive();
     }
 
     void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
