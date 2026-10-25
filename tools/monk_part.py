@@ -60,6 +60,8 @@ SPAWN_GUID = {YUWU: 8400035, JINGU: 8400036, TIANLEI: 8400037, TIANFENG: 8400038
 # les sorts
 S_GIFT, S_CLOUD, S_GIFT_USE = 84960, 84961, 84962
 S_MISTS, S_YULON = 84964, 84965
+S_YULON_MIST = 84968                                            # la Brume apaisante de Yu'lon : un soin périodique, pas une canalisation
+SOOTHING_MIST_TOP = 81780                                       # la Brume apaisante du Moine (mod-custom-classes), son dernier rang
 S_WHISPERS, S_WHISPERS_HEAL = 84966, 84967
 S_KEG, S_KEG_MISS = 84980, 84981
 S_FACEPALM, S_FORTIF = 84982, 84983
@@ -199,6 +201,8 @@ N = {
     "cloud": {"enUS": "Mist Cloud", "frFR": "Nuage de brume", "deDE": "Nebelwolke", "esES": "Nube de bruma", "ruRU": "Облако тумана"},
     "mists": {"enUS": "Mists of Yu Wu", "frFR": "Brumes de Yu Wu", "deDE": "Nebel von Yu Wu", "esES": "Brumas de Yu Wu", "ruRU": "Туманы Юй У"},
     "yulon": {"enUS": "Yu'lon", "frFR": "Yu’lon", "deDE": "Yu'lon", "esES": "Yu'lon", "ruRU": "Юй-лун"},
+    "yulon_mist": {"enUS": "Soothing Mist", "frFR": "Brume apaisante", "deDE": "Beruhigender Nebel", "esES": "Niebla reconfortante",
+                   "ruRU": "Успокаивающий туман"},
     "whispers": {"enUS": "Whispers of Shaohao", "frFR": "Murmures de Shaohao", "deDE": "Flüstern von Shaohao", "esES": "Susurros de Shaohao",
                  "ruRU": "Шепот Шаохао"},
     "keg": {"enUS": "Exploding Keg", "frFR": "Fût explosif", "deDE": "Explodierendes Fass", "esES": "Barril explosivo", "ruRU": "Взрывной бочонок"},
@@ -394,9 +398,19 @@ def spells():
     procs.append([S_MISTS, 0, 0, 0, 0, 0, 0x44400, 2, 2, 0, 1, 0, 0, 10, 130000, 0])
     scripts.append([S_MISTS, "spell_yuwu_brumes"])
     r = add(blank_spell(S_YULON, N["yulon"]))
-    r[FIELD["DurationIndex"]] = 29                         # 12 s
+    r[FIELD["DurationIndex"]] = 18                         # 20 s (Maitre, 25/10/2026 15:21 UTC)
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_HealingTouch")
     effect(r, 1, Effect=28, TargetA=18, BasePoints=0, Misc=NPC_YULON, MiscB=61)
+    # la Brume apaisante que Yu'lon recopie (Maitre, 25/10/2026 15:19 UTC : elle coupait sa canalisation) : la Brume du Moine
+    # (81771 à 81780) est une canalisation dont le script de mod-custom-classes suppose un Moine joueur (sa règle 81781, la
+    # statue) ; Yu'lon pose à la place ce soin périodique de 8 s, tic de 1 s, son montant celui du rang du Moine
+    # (CastCustomSpell, src/monk_weapons.cpp), et montre le fil de la canalisation (spell_yuwu_yulon_brume)
+    sm = client_rows("Spell.dbc")[SOOTHING_MIST_TOP]
+    r = add(blank_spell(S_YULON_MIST, N["yulon_mist"]))
+    for f in ("SpellIconID", "SpellVisual1", "SchoolMask", "RangeIndex", "DurationIndex"):
+        r[FIELD[f]] = sm[FIELD[f]]
+    effect(r, 1, Effect=6, Aura=8, TargetA=21, BasePoints=0, Amplitude=1000)
+    scripts.append([S_YULON_MIST, "spell_yuwu_yulon_brume"])
     r = add(blank_spell(S_WHISPERS, N["whispers"]))
     r[FIELD["Attributes"]] = 0x40 | 0x80
     r[FIELD["DurationIndex"]] = 21

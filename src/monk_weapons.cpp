@@ -69,6 +69,7 @@ enum MonkWeaponSpells
     SPELL_YUWU_YULON            = 84965,
     SPELL_YUWU_MURMURES         = 84966,
     SPELL_YUWU_MURMURES_SOIN    = 84967,
+    SPELL_YUWU_YULON_BRUME      = 84968,   // la Brume apaisante de Yu'lon : un soin périodique, pas une canalisation
     // Jin Gu
     SPELL_JINGU_FUT_EXPLOSIF       = 84980,
     SPELL_JINGU_PAUME_AU_VISAGE    = 84982,
@@ -585,7 +586,17 @@ public:
             return;
         std::vector<Unit*> allies = AlliesBlesses(moine, yulon, YULON_PORTEE, nullptr);
         Unit* cible = allies.empty() ? moine : allies.front();
-        if (copie.periodique && sSpellMgr->GetSpellInfo(copie.periodique))
+        if (spell->GetSpellInfo()->GetFirstRankSpell()->Id == SPELL_MONK_SOOTHING_MIST)
+        {
+            // la Brume apaisante : une canalisation dont le script de mod-custom-classes suppose un Moine joueur (sa règle
+            // 81781, sa statue) ; lancée par Yu'lon, elle coupait la règle du Moine et s'arrêtait d'elle-même. Yu'lon pose son
+            // soin périodique à elle, au montant du rang du Moine, et montre le fil de canalisation
+            int32 tic = spell->GetSpellInfo()->Effects[EFFECT_0].CalcValue(moine);
+            yulon->CastCustomSpell(cible, SPELL_YUWU_YULON_BRUME, &tic, nullptr, nullptr, true);
+            yulon->SetGuidValue(UNIT_FIELD_CHANNEL_OBJECT, cible->GetGUID());
+            yulon->SetUInt32Value(UNIT_CHANNEL_SPELL, SPELL_YUWU_YULON_BRUME);
+        }
+        else if (copie.periodique && sSpellMgr->GetSpellInfo(copie.periodique))
             yulon->CastSpell(cible, copie.periodique, TRIGGERED_FULL_MASK);
         else
         {
@@ -631,6 +642,28 @@ public:
                 break;
             }
         soin = CalculatePct(moine->SpellHealingBonusDone(soigne, sort, soin, type, effet), YULON_PART);
+    }
+};
+
+// spell_yuwu_yulon_brume — sort 84968, la Brume apaisante de Yu'lon : sa fin efface le fil de canalisation que Yu'lon
+// montre vers sa cible (le client le dessine d'après les champs de canalisation du lanceur)
+class spell_yuwu_yulon_brume : public AuraScript
+{
+    PrepareAuraScript(spell_yuwu_yulon_brume);
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        Unit* yulon = GetCaster();
+        if (yulon && yulon->GetGuidValue(UNIT_FIELD_CHANNEL_OBJECT) == GetTarget()->GetGUID())
+        {
+            yulon->SetGuidValue(UNIT_FIELD_CHANNEL_OBJECT, ObjectGuid::Empty);
+            yulon->SetUInt32Value(UNIT_CHANNEL_SPELL, 0);
+        }
+    }
+
+    void Register() override
+    {
+        AfterEffectRemove += AuraEffectRemoveFn(spell_yuwu_yulon_brume::HandleRemove, EFFECT_0, SPELL_AURA_PERIODIC_HEAL, AURA_EFFECT_HANDLE_REAL);
     }
 };
 
@@ -946,6 +979,7 @@ void SC_AddMonkWeaponScripts()
     RegisterSpellScript(spell_tian_lei_charge);
     RegisterSpellScript(spell_yuwu_brumes);
     RegisterCreatureAI(npc_yuwu_yulon);
+    RegisterSpellScript(spell_yuwu_yulon_brume);
     new monk_weapons_yulon_copy();
     new monk_weapons_yulon_soins();
     new monk_weapons_shaohao();
