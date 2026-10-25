@@ -1,6 +1,10 @@
 """Le bâton de Jin Gu (84036) retourné : staff_2h_artifactmonkeyking_d_03 et sa physique tournés de 180° autour de y
 (Maitre, 25/10/2026 10:59 UTC : dégainé, la tête de dragon et sa cloche sont devant, elles doivent être derrière).
 
+ABANDONNÉ (Maitre, 25/10/2026 11:57 UTC) : tourné, le cylindre passait en haut en garde, « doublement à l'envers ». Le modèle
+d'origine met le cylindre en bas en Ready2HL, comme un bâton natif. La partie reprend le bâton et le .phys d'origine ;
+l'outil reste pour mémoire.
+
     python tools/staff_rotate.py <dossier de travail>
 
 Lit ported_orig/ (le bâton porté du retail et le .phys de E:\\atelier\\weapon-physics, jamais modifiés), écrit ported/.
