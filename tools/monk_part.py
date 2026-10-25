@@ -585,11 +585,26 @@ def client_rows(name):
     return _CLIENT_DBC[name]
 
 
-def chaine_murmures():
-    """la SpellChainEffects du fil de Murmures : celle du Salve de guérison, la texture du fil de brume"""
-    row = list(client_rows("SpellChainEffects.dbc")[CHAINE_MODELE])
-    row[0], row[7] = CHAINE_MURMURES, CHAINE_TEXTURE
-    return row
+def chaine_murmures(dossier):
+    """La SpellChainEffects du fil de Murmures : celle du Salve de guérison (736), copiée octet pour octet, son
+    identifiant et sa texture (le fil de brume) changés. SpellChainEffects.dbc fait 48 champs en 177 octets (ses 5
+    derniers sont des octets : alpha, rouge, vert, bleu, mode de fusion) : une ligne du manifeste, écrite en mots de
+    4 octets, ne peut pas la décrire. Elle va dans un DBC réduit de la partie, lu par l'installeur comme le fichier du
+    jeu (manifest.py, _reduced_dbc). Rend le chemin, relatif à la partie."""
+    sys.path.insert(0, r"E:\WoW-mods\installer")
+    import core
+    game = core.Client(CLIENT)
+    f = "DBFilesClient\\SpellChainEffects.dbc"
+    fields, size, recs, _ = core.dbc_split(game.open(game.winner(f)).read(f), f)
+    assert (fields, size) == (48, 177), (fields, size)
+    modele = next(bytearray(r) for r in recs if struct.unpack_from("<I", r)[0] == CHAINE_MODELE)
+    strings = b"\0" + CHAINE_TEXTURE.encode() + b"\0"
+    struct.pack_into("<I", modele, 0, CHAINE_MURMURES)
+    struct.pack_into("<I", modele, 7 * 4, 1)                # la texture : la première chaîne du bloc
+    rel = "data/dbc/SpellChainEffects.dbc"
+    os.makedirs(os.path.join(dossier, "data", "dbc"), exist_ok=True)
+    open(os.path.join(dossier, rel), "wb").write(core.dbc_join(fields, size, [bytes(modele)], bytearray(strings)))
+    return rel
 
 
 def word(v):
@@ -800,7 +815,8 @@ def main():
         # que les DBC que le nouveau paquet déclare encore)
         entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [], [[1, 16]], [[ITEMSET, ITEMSET]]),
         entry("AnimationData.dbc", "isiiiiii", ANIM_ROWS, [1], [[ANIM_FUT_PRE, ANIM_DON_REPLI], [ANIM_DON, ANIM_DON]]),
-        entry("SpellChainEffects.dbc", "i" * 7 + "s" + "i" * 40, [chaine_murmures()], [7], [[CHAINE_MURMURES, CHAINE_MURMURES]]),
+        {"file": "SpellChainEffects.dbc", "fields": 48, "text_fields": [7], "client": chaine_murmures(PART), "server": False,
+         "owned_ids": [[CHAINE_MURMURES, CHAINE_MURMURES]]},   # le client seul la lit
         entry("SpellMissileMotion.dbc", "issii", [[MOTION_NUAGE, "Yu Wu Cloud", MOTION_SCRIPT, 0, 1]], [1, 2],
               [[MOTION_NUAGE, MOTION_NUAGE]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
