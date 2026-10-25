@@ -46,6 +46,8 @@ BOOK = {YUWU: 84135, JINGU: 84136, TIANLEI: 84137, TIANFENG: 84138}
 QUEST = {YUWU: 84035, JINGU: 84036, TIANLEI: 84037, TIANFENG: 84038}       # quête et PNJ ont le même numéro
 ITEMSET = 84037                                     # Poings des Cieux (ItemSet.dbc)
 NPC_YULON, NPC_CRANE = 84205, 84206                 # créatures invoquées ; leurs affichages et modèles du même numéro
+NPC_CLOUD = 84207                                   # un Nuage de brume de Yu Wu au sol, vu du seul Moine (src/monk_weapons.cpp)
+CLOUD_DISPLAY = 22460                               # CloudSwampGas_Shadowmoon_White : un nuage de gaz blanc du client 3.3.5
 SPAWN_GUID = {YUWU: 8400035, JINGU: 8400036, TIANLEI: 8400037, TIANFENG: 8400038}
 # les sorts
 S_GIFT, S_CLOUD, S_GIFT_USE = 84960, 84961, 84962
@@ -296,7 +298,7 @@ def spells():
     I = icon_id
     rows, procs, bonus, scripts = [], [], [], []
     passive = 0x40 | 0x80000000          # SPELL_ATTR0_PASSIVE, SPELL_ATTR0_HIDE_IN_COMBAT_LOG... les passifs d'objets des autres armes
-    no_log = 0x10000000                  # AttributesEx : SPELL_ATTR1_NO_THREAT? non : celle des 32 autres (268435456), le journal de combat
+    no_log = 0x10000000                  # AttributesEx : SPELL_ATTR1_NO_AURA_ICON, pas d'icône dans les améliorations (les soins sans aura)
 
     def add(row):
         rows.append(row)
@@ -312,14 +314,15 @@ def spells():
     effect(r, 1, Effect=6, Aura=42, TargetA=1, BasePoints=0, Trigger=S_CLOUD)
     set_text(r, "Description", D[S_GIFT])
     procs.append([S_GIFT, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 25, 0, 0])
-    r = add(blank_spell(S_CLOUD, N["cloud"]))
-    r[FIELD["AttributesEx"]] = no_log
+    scripts.append([S_GIFT, "spell_yuwu_don_nuage"])               # le nuage au sol, vu du seul Moine
+    r = add(blank_spell(S_CLOUD, N["cloud"]))                # visible dans les améliorations : ses cumuls comptent les nuages
     r[FIELD["DurationIndex"]] = 3                          # 60 s
     r[FIELD["StackAmount"]] = 10
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_Rejuvenation")
     r[FIELD["SchoolMask"]] = 8
     effect(r, 1, Effect=6, Aura=4, TargetA=1, BasePoints=0)
     set_text(r, "ToolTip", A[S_CLOUD])
+    scripts.append([S_CLOUD, "spell_yuwu_nuage"])                 # son départ emporte les nuages du sol
     r = add(blank_spell(S_GIFT_USE, N["gift"]))
     r[FIELD["RangeIndex"]] = 5                             # 40 m
     r[FIELD["RecoveryTime"]] = 30000
@@ -400,7 +403,9 @@ def spells():
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_Lightning")
     effect(r, 1, Effect=6, Aura=42, TargetA=1, BasePoints=0, Trigger=S_THUNDER_BUFF)
     set_text(r, "Description", D[S_THUNDER])
-    procs.append([S_THUNDER, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0])               # 3 déclenchements par minute
+    # 3 déclenchements par minute : 3 PPM laissaient 7 déclenchements en 60 s (les techniques du Moine comptent comme des
+    # coups) ; une recharge de 20 s les borne à 3 par minute de combat
+    procs.append([S_THUNDER, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 100, 20000, 0])
     r = add(blank_spell(S_THUNDER_BUFF, N["thunder"]))
     r[FIELD["DurationIndex"]] = 9                          # 30 s pour s'en servir
     r[FIELD["ProcFlags"]] = 0x4 | 0x10
@@ -410,6 +415,7 @@ def spells():
     effect(r, 1, Effect=6, Aura=42, TargetA=1, BasePoints=0, Trigger=S_THUNDER_HIT)
     set_text(r, "ToolTip", A[S_THUNDER_BUFF])
     procs.append([S_THUNDER_BUFF, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 100, 0, 4])
+    scripts.append([S_THUNDER_BUFF, "spell_tian_lei_charge"])      # le coup qui pose les charges n'en use aucune
     r = add(blank_spell(S_THUNDER_HIT, N["thunder"]))
     r[FIELD["AttributesEx"]] = no_log & 0
     r[FIELD["RangeIndex"]] = 2                             # mêlée
@@ -437,7 +443,7 @@ def spells():
     r[FIELD["DmgClass"]] = 1
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Ability_Druid_GaleWinds")
     r[FIELD["SpellVisual1"]] = template_visual(33786)      # Cyclone
-    effect(r, 1, Effect=2, TargetA=22, TargetB=15, Radius=14, BasePoints=599)
+    effect(r, 1, Effect=2, TargetA=53, TargetB=16, Radius=14, BasePoints=599)          # le Moine la lance sur sa cible : 8 m autour
     bonus.append([S_CRANE_PULSE, 0, 0, 0, 0, "Tian Feng - Vents croisés - 600 fixes toutes les 0,5 s (cahier)"])
 
     # --- l'ensemble : Frappe du Seigneur des vents
@@ -578,7 +584,7 @@ def main():
     model_rows, display_rows = [], []
     for cid, path, copy_of, files, skins, scale in (
             (NPC_YULON, "Creature\\PandarenSerpentGod\\pandarenserpentgod.mdx", 2071, os.path.join(work, "yulon_final", "pandarenserpentgod.m2"),
-             ["pandarenserpentgod_green", "pandarenserpentgod_green_glow", ""], 0.5),
+             ["pandarenserpentgod_green", "pandarenserpentgod_green_glow", ""], 0.4),     # 0,5 puis -20 % (Maitre, 25/10 00:13 UTC)
             (NPC_CRANE, "Creature\\Crane\\crane.mdx", 373, os.path.join(work, "ported_crane", "crane.m2"), ["cranewhite", "", ""], 1.0)):
         row = list(by_id[copy_of])
         box = model_box(files)
@@ -672,14 +678,17 @@ def main():
         sp.update({"guid": SPAWN_GUID[qid], "id": QUEST[qid], "map": m, "zoneId": zone, "areaId": area,
                    "position_x": x, "position_y": y, "position_z": z, "orientation": o})
         spawns.append([sp[c] for c in T["creature"]["cols"]])
-    for cid, name, script in ((NPC_YULON, N["yulon"], "npc_yuwu_yulon"), (NPC_CRANE, N["crosswinds"], "npc_tian_feng_grue")):
+    for cid, name, script in ((NPC_YULON, N["yulon"], "npc_yuwu_yulon"), (NPC_CRANE, N["crosswinds"], "npc_tian_feng_grue"),
+                              (NPC_CLOUD, N["cloud"], "npc_yuwu_nuage")):
         row = copy_row(T, "creature_template", "entry", 84200)
         row.update({"entry": cid, "name": name["enUS"], "subname": "", "ScriptName": script, "unit_flags": 0x2000000 | 0x2,
-                    "flags_extra": 0x2 if cid == NPC_CRANE else row.get("flags_extra", 0)})
+                    "flags_extra": 0x2 if cid in (NPC_CRANE, NPC_CLOUD) else row.get("flags_extra", 0)})
+        if cid == NPC_CLOUD:
+            row.update({"faction": 35, "unit_flags": 0x2000000 | 0x2 | 0x100})   # ni ciblable, ni attaquable, amical
         rows.append([row[c] for c in ct])
-        models_sql.append([cid, 0, cid, 1, 1, 0])
+        models_sql.append([cid, 0, CLOUD_DISPLAY if cid == NPC_CLOUD else cid, 0.6 if cid == NPC_CLOUD else 1, 1, 0])
         locs += [[cid, lang, name[lang], "", 0] for lang in LOCALES]
-    ids = "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, NPC_YULON, NPC_CRANE)
+    ids = "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, NPC_YULON, NPC_CLOUD)
     out_sql += ["DELETE FROM `creature_template` WHERE %s;" % ids] + insert("creature_template", ct, rows) + [""]
     out_sql += ["DELETE FROM `creature_template_model` WHERE %s;" % ids.replace("entry", "CreatureID")]
     out_sql += insert("creature_template_model", T["creature_template_model"]["cols"], models_sql) + [""]

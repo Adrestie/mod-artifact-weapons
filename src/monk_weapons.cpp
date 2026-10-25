@@ -7,12 +7,15 @@
  * ---------------------------------------------------------------------------
  * Yu Wu, bâton des Brumes (84035)
  *   - Don de Yu Wu (84960, passif) : chaque soin, 25 % de chances d'un Nuage de brume (84961, 10 au plus,
- *     60 s) : en base, aura de déclenchement et spell_proc.
+ *     60 s) : en base, aura de déclenchement et spell_proc. Chaque nuage gagné se pose aussi au sol près de
+ *     l'allié soigné (84207), vu du seul Moine : spell_yuwu_don_nuage et npc_yuwu_nuage.
  *   - Don de Yu Wu (84962, utilisation) : consomme les nuages, soigne la cible de 1 800 (+20 % de la
- *     puissance des soins) par nuage : spell_yuwu_don.
+ *     puissance des soins) par nuage ; les nuages du sol filent vers le Moine et disparaissent : spell_yuwu_don.
  *   - Brumes de Yu Wu (84964, passif) : un sort de soin instantané qui soigne, 10 % de chances (130 s de
  *     recharge interne, spell_proc) d'invoquer Yu'lon 12 s (84965) : spell_yuwu_brumes ; Yu'lon refait les
- *     sorts de soin du Moine sur les alliés les plus bas en vie : npc_yuwu_yulon et monk_weapons_yulon_copy.
+ *     sorts de soin du Moine sur les alliés les plus bas en vie, à 75 % : npc_yuwu_yulon, monk_weapons_yulon_copy
+ *     et monk_weapons_yulon_soins (les Brumes de surtension, enveloppante et de rénovation y compris ;
+ *     l'Extraction du mal, que le Moine lance sur lui-même, elle la lance sur l'allié).
  *   - Murmures de Shaohao (84966, passif) : la Brume apaisante du Moine et de sa statue rebondit sur 2 alliés
  *     de plus, les plus bas en vie, -33 % par rebond (84967) : monk_weapons_shaohao.
  * Jin Gu, bâton du Roi-Singe (84036)
@@ -23,15 +26,18 @@
  *   - Fortification de Jin Gu (84983) : +4 % d'esquive en posture du Buffle (le script du Report de
  *     mod-custom-classes ne lit aucun bonus extérieur : la solution de repli du cahier), en base.
  * Tian Lei et Tian Feng, Poings des Cieux (84037, 84038)
- *   - Poing de tonnerre (84920) : en base (3 par minute, 4 charges de 450 + 10 % PA de Nature).
- *   - Vents croisés (84460) : pendant Poings de fureur, une grue (84206) frappe autour de la cible toutes les
- *     0,5 s (84462) : monk_weapons_vents_croises et npc_tian_feng_grue.
+ *   - Poing de tonnerre (84920) : en base (20 s de recharge, 4 charges de 450 + 10 % PA de Nature) ; le coup qui
+ *     pose les charges n'en use aucune : spell_tian_lei_charge.
+ *   - Vents croisés (84460) : pendant Poings de fureur, une grue (84206) tournoie au-dessus de la cible, et le
+ *     Moine frappe toutes les 0,5 s les ennemis à 8 m d'elle (84462) : monk_weapons_vents_croises et
+ *     npc_tian_feng_grue.
  *   - Frappe du Seigneur des vents (ensemble 84037) : l'aura de l'ensemble (84463) apprend la frappe (84464)
  *     tant que les deux poings sont portés : spell_poings_des_cieux_ensemble.
  * ---------------------------------------------------------------------------
  */
 
 #include "CellImpl.h"
+#include "GameTime.h"
 #include "GridNotifiers.h"
 #include "Group.h"
 #include "Player.h"
@@ -65,11 +71,25 @@ enum MonkWeaponSpells
     SPELL_POINGS_FRAPPE            = 84464,
     NPC_YUWU_YULON              = 84205,
     NPC_TIANFENG_GRUE              = 84206,
+    NPC_YUWU_NUAGE                 = 84207,
     // les sorts du Moine (mod-custom-classes, premiers rangs)
     SPELL_MONK_TIGER_PALM          = 81113,
     SPELL_MONK_FISTS_OF_FURY       = 81198,
     SPELL_MONK_SOOTHING_MIST       = 81771,
     SPELL_MONK_STATUE_SOOTHING     = 81896,   // la Brume apaisante de la statue du Serpent de jade
+    // des sorts du Moine que Yu'lon refait autrement qu'il ne les lance (mod-custom-classes, src/monk/monk_spells.cpp) :
+    // les trois Brumes ne soignent pas elles-mêmes (un effet factice dont le script lance le soin, rang pour rang)
+    SPELL_MONK_SURGING_MIST        = 81782,   // 8 rangs ; le soin : 81790 et suivants
+    SPELL_MONK_SURGING_MIST_HEAL   = 81790,
+    SPELL_MONK_ENVELOPING_MIST     = 81798,   // 10 rangs ; le soin périodique : 81808 et suivants
+    SPELL_MONK_ENVELOPING_MIST_HOT = 81808,
+    SPELL_MONK_RENEWING_MIST       = 81818,   // 7 rangs ; le soin périodique : 81825 et suivants
+    SPELL_MONK_RENEWING_MIST_HOT   = 81825,
+    // l'Extraction du mal soigne le Moine qui la lance : Yu'lon prend sa variante sur un allié (celle du glyphe), par posture
+    SPELL_MONK_EXPEL_HARM          = 81148,
+    SPELL_MONK_EXPEL_HARM_SERPENT  = 81925,
+    SPELL_MONK_EXPEL_HARM_ALLY     = 82378,
+    SPELL_MONK_EXPEL_HARM_ALLY_SERPENT = 82379,
 };
 
 // les breuvages du Moine (mod-custom-classes) : Paume au visage réduit leur recharge
@@ -84,18 +104,47 @@ static constexpr uint32 MONK_BREUVAGES[] = {
 };
 
 static constexpr float YULON_PORTEE     = 40.0f;   // les alliés que Yu'lon soigne, autour d'elle
+static constexpr int32 YULON_PART       = 75;      // % des soins du Moine que font ses copies (Maitre, 25/10/2026 00:13 UTC)
+static constexpr uint32 YULON_ALLURE    = 250;     // ms entre deux recopies des vitesses du Moine
 static constexpr float SHAOHAO_PORTEE   = 40.0f;   // les alliés des rebonds, autour de la cible soignée
 static constexpr uint32 SHAOHAO_REBONDS = 2;
 static constexpr uint32 GRUE_PERIODE    = 500;     // ms, une impulsion de Vents croisés
 static constexpr float GRUE_PORTEE      = 8.0f;    // la portée de Poings de fureur : la cible de la grue sans cible du Moine
 static constexpr uint32 PAUME_RECHARGE  = 4000;    // ms entre deux Paumes au visage
 static constexpr int32 PAUME_BREUVAGES  = -1000;   // ms ôtées aux breuvages
+static constexpr uint32 NUAGES_MAX      = 10;      // les cumuls de 84961
+static constexpr uint32 NUAGE_DUREE     = 60000;   // ms, la durée de 84961
+static constexpr float NUAGE_ECART      = 2.5f;    // le nuage se pose à cette distance de l'allié soigné
+static constexpr float NUAGE_VITESSE    = 14.0f;   // m/s, son vol vers le Moine qui le consomme
 
 namespace
 {
     std::mutex monkWeaponsLock;
+    // vrai pendant qu'une copie de Yu'lon se lance : ses soins directs arrivent avant le retour de CastSpell (déclenché,
+    // sans temps d'incantation), monk_weapons_yulon_soins les ramène à 75 %
+    thread_local bool copieDeYulon = false;
     std::unordered_map<ObjectGuid, ObjectGuid> yulonDuMoine;          // le Moine -> sa Yu'lon
     std::unordered_map<ObjectGuid, ObjectGuid> cibleDeLaGrue;         // le Moine -> la cible de sa prochaine grue
+    std::unordered_map<ObjectGuid, std::vector<ObjectGuid>> nuagesDuMoine;   // le Moine -> ses nuages au sol, du plus ancien au plus récent
+
+    // les nuages du Moine, retirés de la liste (ceux qui ont déjà disparu sont omis)
+    std::vector<Creature*> PrendsNuages(Unit* moine)
+    {
+        std::vector<ObjectGuid> guids;
+        {
+            std::lock_guard<std::mutex> garde(monkWeaponsLock);
+            auto it = nuagesDuMoine.find(moine->GetGUID());
+            if (it == nuagesDuMoine.end())
+                return {};
+            guids.swap(it->second);
+            nuagesDuMoine.erase(it);
+        }
+        std::vector<Creature*> nuages;
+        for (ObjectGuid const& guid : guids)
+            if (Creature* nuage = ObjectAccessor::GetCreature(*moine, guid))
+                nuages.push_back(nuage);
+        return nuages;
+    }
 
     // les alliés (le groupe du Moine, ou lui seul) autour d'un point, vivants et blessés, du plus bas en vie au plus haut
     std::vector<Unit*> AlliesBlesses(Player* moine, WorldObject const* centre, float portee, Unit const* sauf)
@@ -157,9 +206,21 @@ class spell_yuwu_don : public SpellScript
 
     void HandleAfterHit()
     {
-        if (Unit* moine = GetCaster())
-            if (nuages)
-                moine->RemoveAurasDueToSpell(SPELL_YUWU_NUAGE);
+        Unit* moine = GetCaster();
+        if (!moine || !nuages)
+            return;
+        // les nuages du sol filent vers le Moine, puis disparaissent ; pris avant le retrait de l'aura, qui sinon les efface
+        for (Creature* nuage : PrendsNuages(moine))
+        {
+            float const distance = nuage->GetDistance(moine);
+            nuage->SetDisableGravity(true);
+            nuage->SetCanFly(true);
+            nuage->GetMotionMaster()->Clear();
+            nuage->GetMotionMaster()->MovePoint(0, moine->GetPositionX(), moine->GetPositionY(), moine->GetPositionZ() + 1.0f,
+                FORCED_MOVEMENT_NONE, NUAGE_VITESSE, 0.0f, false);
+            nuage->DespawnOrUnsummon(Milliseconds(uint32(1000.0f * distance / NUAGE_VITESSE) + 300));
+        }
+        moine->RemoveAurasDueToSpell(SPELL_YUWU_NUAGE);
     }
 
     void Register() override
@@ -168,6 +229,86 @@ class spell_yuwu_don : public SpellScript
         OnEffectHitTarget += SpellEffectFn(spell_yuwu_don::HandleHeal, EFFECT_0, SPELL_EFFECT_HEAL);
         AfterHit += SpellHitFn(spell_yuwu_don::HandleAfterHit);
     }
+};
+
+/*
+ * spell_yuwu_don_nuage — sort 84960 (passif de Yu Wu)
+ * Après chaque Nuage de brume gagné (la base lance 84961), un nuage (84207) se pose au sol près de l'allié soigné,
+ * vu du seul Moine (SummonCreature, visibleBySummonerOnly). Il dure ce que dure un cumul ; au-delà de 10, le plus
+ * ancien s'en va.
+ */
+class spell_yuwu_don_nuage : public AuraScript
+{
+    PrepareAuraScript(spell_yuwu_don_nuage);
+
+    void HandleAfterProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+    {
+        Unit* moine = GetTarget();
+        if (!moine || !moine->HasAura(SPELL_YUWU_NUAGE))
+            return;
+        Unit* soigne = eventInfo.GetProcTarget();
+        WorldObject* pres = soigne && soigne->IsInMap(moine) ? static_cast<WorldObject*>(soigne) : moine;
+        Position pos = pres->GetRandomNearPosition(NUAGE_ECART);
+        TempSummon* nuage = moine->SummonCreature(NPC_YUWU_NUAGE, pos, TEMPSUMMON_TIMED_DESPAWN, NUAGE_DUREE, 0, nullptr, true);
+        if (!nuage)
+            return;
+        ObjectGuid trop;
+        {
+            std::lock_guard<std::mutex> garde(monkWeaponsLock);
+            std::vector<ObjectGuid>& liste = nuagesDuMoine[moine->GetGUID()];
+            liste.push_back(nuage->GetGUID());
+            if (liste.size() > NUAGES_MAX)
+            {
+                trop = liste.front();
+                liste.erase(liste.begin());
+            }
+        }
+        if (!trop.IsEmpty())
+            if (Creature* ancien = ObjectAccessor::GetCreature(*moine, trop))
+                ancien->DespawnOrUnsummon();
+    }
+
+    void Register() override
+    {
+        AfterEffectProc += AuraEffectProcFn(spell_yuwu_don_nuage::HandleAfterProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+    }
+};
+
+/*
+ * spell_yuwu_nuage — sort 84961 (les Nuages de brume, en cumuls)
+ * L'aura qui expire, ou part autrement que par le Don (la mort, une dissipation), emporte les nuages du sol.
+ */
+class spell_yuwu_nuage : public AuraScript
+{
+    PrepareAuraScript(spell_yuwu_nuage);
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        if (Unit* moine = GetTarget())
+            for (Creature* nuage : PrendsNuages(moine))
+                nuage->DespawnOrUnsummon();
+    }
+
+    void Register() override
+    {
+        AfterEffectRemove += AuraEffectRemoveFn(spell_yuwu_nuage::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+/*
+ * npc_yuwu_nuage — créature 84207, un Nuage de brume au sol (gaz blanc du client 3.3.5, affichage 22460)
+ * Immobile et inerte ; le Don le fait voler vers le Moine.
+ */
+struct npc_yuwu_nuage : public ScriptedAI
+{
+    npc_yuwu_nuage(Creature* creature) : ScriptedAI(creature)
+    {
+        me->SetReactState(REACT_PASSIVE);
+    }
+
+    void AttackStart(Unit* /*who*/) override { }
+    void MoveInLineOfSight(Unit* /*who*/) override { }
+    void UpdateAI(uint32 /*diff*/) override { }
 };
 
 /*
@@ -237,12 +378,63 @@ struct npc_yuwu_yulon : public ScriptedAI
         me->SetDisableGravity(true);
         me->SetCanFly(true);
         me->SetHover(true);
+        Allure(moine);
         me->GetMotionMaster()->MoveFollow(moine, 3.0f, float(M_PI));
     }
 
+    // Un gardien sans barre de familier garde sa propre vitesse quand il suit (TargetedMovementGenerator.cpp, GetVelocity) :
+    // plus rapide que le Moine, Yu'lon le rattrapait, s'arrêtait, repartait, et son animation de vol repartait à zéro à
+    // chaque fois. Elle prend donc les vitesses du Moine, recopiées tant qu'elle le suit (monture, ralentissement...).
+    uint32 allure = YULON_ALLURE;
+
+    void Allure(Unit* moine)
+    {
+        for (UnitMoveType type : { MOVE_WALK, MOVE_RUN, MOVE_FLIGHT })
+        {
+            float const vitesse = moine->GetSpeedRate(moine->IsFlying() ? MOVE_FLIGHT : (type == MOVE_WALK ? MOVE_WALK : MOVE_RUN));
+            if (me->GetSpeedRate(type) != vitesse)
+                me->SetSpeed(type, vitesse);
+        }
+    }
+
     void AttackStart(Unit* /*who*/) override { }
-    void UpdateAI(uint32 /*diff*/) override { }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (allure > diff)
+        {
+            allure -= diff;
+            return;
+        }
+        allure = YULON_ALLURE;
+        if (Player* moine = ObjectAccessor::GetPlayer(*me, moineGuid))
+            Allure(moine);
+    }
 };
+
+// le sort que Yu'lon lance pour refaire celui du Moine, ou 0 : les trois Brumes, qui soignent par leur script, deviennent
+// leur soin au même rang ; l'Extraction du mal, qui soigne son lanceur, sa variante sur un allié ; tout autre sort qui
+// soigne reste lui-même, sauf s'il ne vise que son lanceur (Yu'lon se soignerait)
+static uint32 SortDeYulon(SpellInfo const* sort)
+{
+    uint32 const premier = sort->GetFirstRankSpell()->Id;
+    uint32 const rang = sort->Id - premier;
+    switch (premier)
+    {
+        case SPELL_MONK_SURGING_MIST:       return SPELL_MONK_SURGING_MIST_HEAL + rang;
+        case SPELL_MONK_ENVELOPING_MIST:    return SPELL_MONK_ENVELOPING_MIST_HOT + rang;
+        case SPELL_MONK_RENEWING_MIST:      return SPELL_MONK_RENEWING_MIST_HOT + rang;
+        case SPELL_MONK_EXPEL_HARM:         return SPELL_MONK_EXPEL_HARM_ALLY;
+        case SPELL_MONK_EXPEL_HARM_SERPENT: return SPELL_MONK_EXPEL_HARM_ALLY_SERPENT;
+        default: break;
+    }
+    if (!Soigne(sort))
+        return 0;
+    for (SpellEffectInfo const& effet : sort->GetEffects())
+        if (effet.IsEffect() && effet.TargetA.GetTarget() != TARGET_UNIT_CASTER)
+            return sort->Id;
+    return 0;
+}
 
 // Yu'lon refait chaque sort de soin que le Moine lance lui-même (pas un sort déclenché) sur l'allié le plus bas
 // en vie autour d'elle ; le Moine reste le lanceur d'origine (ses bonus de soins)
@@ -253,7 +445,10 @@ public:
 
     void OnPlayerSpellCast(Player* moine, Spell* spell, bool /*skipCheck*/) override
     {
-        if (!spell || spell->IsTriggered() || !Soigne(spell->GetSpellInfo()))
+        if (!spell || spell->IsTriggered())
+            return;
+        uint32 const copie = SortDeYulon(spell->GetSpellInfo());
+        if (!copie || !sSpellMgr->GetSpellInfo(copie))
             return;
         ObjectGuid yulonGuid;
         {
@@ -268,7 +463,30 @@ public:
             return;
         std::vector<Unit*> allies = AlliesBlesses(moine, yulon, YULON_PORTEE, nullptr);
         Unit* cible = allies.empty() ? moine : allies.front();
-        yulon->CastSpell(cible, spell->GetSpellInfo()->Id, TRIGGERED_FULL_MASK, nullptr, nullptr, moine->GetGUID());
+        copieDeYulon = true;
+        yulon->CastSpell(cible, copie, TRIGGERED_FULL_MASK, nullptr, nullptr, moine->GetGUID());
+        copieDeYulon = false;
+        // ses soins périodiques : le montant de chaque tic est fixé à la pose, ramené ici à 75 % (une aura qui vient d'être
+        // posée ou rafraîchie par cette copie a toute sa durée)
+        if (Aura* aura = cible->GetAura(copie, moine->GetGUID()))
+            if (aura->GetDuration() == aura->GetMaxDuration())
+                for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+                    if (AuraEffect* effet = aura->GetEffect(i))
+                        if (effet->GetAuraType() == SPELL_AURA_PERIODIC_HEAL)
+                            effet->ChangeAmount(CalculatePct(effet->GetAmount(), YULON_PART));
+    }
+};
+
+// les soins directs d'une copie de Yu'lon : 75 % de ceux du Moine
+class monk_weapons_yulon_soins : public UnitScript
+{
+public:
+    monk_weapons_yulon_soins() : UnitScript("monk_weapons_yulon_soins", true, { UNITHOOK_MODIFY_HEAL_RECEIVED }) { }
+
+    void ModifyHealReceived(Unit* /*cible*/, Unit* /*lanceur*/, uint32& soin, SpellInfo const* /*sort*/) override
+    {
+        if (copieDeYulon)
+            soin = CalculatePct(soin, YULON_PART);
     }
 };
 
@@ -379,9 +597,8 @@ public:
 
 /*
  * npc_tian_feng_grue — créature 84206
- * Prend la faction du Moine, se tient au-dessus de sa cible et frappe toutes les 0,5 s les ennemis à 8 m
- * (84462, le Moine lanceur d'origine : les dégâts sont les siens). Elle part si le Moine ne canalise plus
- * Poings de fureur, ou si la cible meurt.
+ * Prend la faction du Moine et se tient au-dessus de sa cible ; toutes les 0,5 s, le Moine frappe les ennemis à 8 m
+ * de la cible (84462). Elle part si le Moine ne canalise plus Poings de fureur, ou si la cible meurt.
  */
 struct npc_tian_feng_grue : public ScriptedAI
 {
@@ -436,7 +653,39 @@ struct npc_tian_feng_grue : public ScriptedAI
             return;
         }
         me->NearTeleportTo(cible->GetPositionX(), cible->GetPositionY(), cible->GetPositionZ() + 2.0f, me->GetOrientation());
-        me->CastSpell(me, SPELL_TIANFENG_GRUE_IMPULSION, TRIGGERED_FULL_MASK, nullptr, nullptr, moineGuid);
+        // la grue n'est que l'image : une créature ne trouve pas de cible contre un mannequin neutre ; le Moine lance
+        // l'impulsion sur la cible (84462 : 8 m autour d'elle), avec ses propres règles d'attaque
+        moine->CastSpell(cible, SPELL_TIANFENG_GRUE_IMPULSION, TRIGGERED_FULL_MASK);
+    }
+};
+
+/*
+ * spell_tian_lei_charge — sort 84921 (Poing de tonnerre, les 4 charges)
+ * Le coup qui pose l'aura se poursuit dans la même mise à jour du monde (la seconde main, les coups d'une même
+ * technique) : sans garde, il usait déjà une charge. Rien ne se déclenche dans la milliseconde de jeu où l'aura est
+ * posée : les 4 charges vont aux 4 attaques suivantes.
+ */
+class spell_tian_lei_charge : public AuraScript
+{
+    PrepareAuraScript(spell_tian_lei_charge);
+
+    Milliseconds pose = Milliseconds::zero();
+
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    {
+        pose = GameTime::GetGameTimeMS();
+    }
+
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
+    {
+        return GameTime::GetGameTimeMS() != pose;
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(spell_tian_lei_charge::HandleApply, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL,
+            AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+        DoCheckProc += AuraCheckProcFn(spell_tian_lei_charge::CheckProc);
     }
 };
 
@@ -472,9 +721,14 @@ class spell_poings_des_cieux_ensemble : public AuraScript
 void SC_AddMonkWeaponScripts()
 {
     RegisterSpellScript(spell_yuwu_don);
+    RegisterSpellScript(spell_yuwu_don_nuage);
+    RegisterSpellScript(spell_yuwu_nuage);
+    RegisterCreatureAI(npc_yuwu_nuage);
+    RegisterSpellScript(spell_tian_lei_charge);
     RegisterSpellScript(spell_yuwu_brumes);
     RegisterCreatureAI(npc_yuwu_yulon);
     new monk_weapons_yulon_copy();
+    new monk_weapons_yulon_soins();
     new monk_weapons_shaohao();
     new monk_weapons_fut_explosif();
     new monk_weapons_paume_au_visage();

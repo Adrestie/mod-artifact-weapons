@@ -289,7 +289,7 @@
      0,
      0,
      0,
-     268435456,
+     0,
      0,
      0,
      0,
@@ -3674,10 +3674,10 @@
      0,
      0,
      0,
-     22,
+     53,
      0,
      0,
-     15,
+     16,
      0,
      0,
      14,
@@ -4939,7 +4939,7 @@
      84205,
      0,
      0,
-     1056964608,
+     1053609165,
      255,
      "pandarenserpentgod_green",
      "pandarenserpentgod_green_glow",
@@ -5019,11 +5019,11 @@
     },
     {
      "table": "creature_template",
-     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206"
+     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84207"
     },
     {
      "table": "creature_template_model",
-     "where": "CreatureID BETWEEN 84035 AND 84038 OR CreatureID BETWEEN 84205 AND 84206"
+     "where": "CreatureID BETWEEN 84035 AND 84038 OR CreatureID BETWEEN 84205 AND 84207"
     },
     {
      "table": "creature_model_info",
@@ -5031,7 +5031,7 @@
     },
     {
      "table": "creature_template_locale",
-     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84206"
+     "where": "entry BETWEEN 84035 AND 84038 OR entry BETWEEN 84205 AND 84207"
     },
     {
      "table": "creature",
