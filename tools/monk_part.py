@@ -73,6 +73,8 @@ S_CLOUD_MISSILE = 84963                                         # un nuage aspir
 # les visuels de la partie (SpellVisual, SpellVisualKit, SpellVisualEffectName : tranche 84, 84035 à 84049)
 VIS_DON, VIS_NUAGE, VIS_TONNERRE, VIS_LAMES, VIS_ORAGE, VIS_GRUE, VIS_FUT, VIS_MURMURES = range(84035, 84043)
 KIT_DON_PRE, KIT_DON_CAST, KIT_GRUE, KIT_FUT_PRE, KIT_FUT_CAST = 84035, 84036, 84037, 84038, 84039
+KIT_MURMURES = 84040                                            # le fil de la Brume apaisante, d'un maillon au suivant
+KIT_BRUME_CANAL = 81139                                         # la canalisation de la Brume apaisante (mod-custom-classes) : ses chaînes
 EFF_NUAGE, EFF_LAMES = 84035, 84036
 VISUAL_IDS = [84035, 84049]
 # Les animations du Moine de MoP (Maitre, 25/10/2026 11:50 UTC) : le Don joue celles de l'Élévation (52 puis 54, que la
@@ -230,11 +232,11 @@ D = {
               "deDE": "Wenn Eure Heilzauber ein Ziel heilen, besteht eine Chance von 10%, Yu'lon zu beschwören, die Euch $84965d lang beim Heilen des Schlachtzugs hilft: Sie wirkt Eure Heilzauber erneut auf die am schwersten verletzten Verbündeten. Kann nicht öfter als einmal alle 130 Sek. auftreten.",
               "esES": "Cuando tus hechizos de sanación sanan a un objetivo, tienes un 10% de probabilidad de invocar a Yu'lon, que te ayuda a restablecer a la banda durante $84965d: lanza de nuevo tus hechizos de sanación sobre los aliados más heridos. No puede ocurrir más de una vez cada 130 s.",
               "ruRU": "Когда ваши исцеляющие заклинания исцеляют цель, с вероятностью 10% призывается Юй-лун, которая помогает вам восстанавливать рейд в течение $84965d: она повторяет ваши исцеляющие заклинания на самых раненых союзниках. Не чаще одного раза в 130 сек."},
-    S_WHISPERS: {"enUS": "Your Soothing Mist and your Jade Serpent Statue's bounce to 2 additional allies, the most injured first, each bounce healing 33% less.",
-                 "frFR": "Votre Brume apaisante et celle de votre statue du Serpent de jade rebondissent sur 2 alliés supplémentaires, les plus blessés d’abord, chaque rebond soignant 33% de moins.",
-                 "deDE": "Euer Beruhigender Nebel und der Eurer Jadeschlangenstatue springen auf 2 weitere Verbündete über, die am schwersten verletzten zuerst; jeder Sprung heilt 33% weniger.",
-                 "esES": "Tu Niebla calmante y la de tu estatua del Dragón de Jade rebotan en 2 aliados adicionales, primero los más heridos, y cada rebote sana un 33% menos.",
-                 "ruRU": "Ваш Успокаивающий туман и туман вашей статуи Нефритовой Змеи перескакивают еще на 2 союзников, начиная с самых раненых; каждый скачок исцеляет на 33% меньше."},
+    S_WHISPERS: {"enUS": "Your Soothing Mist and your Jade Serpent Statue's bounce to 2 additional allies, the most injured first, each bounce healing 50% less.",
+                 "frFR": "Votre Brume apaisante et celle de votre statue du Serpent de jade rebondissent sur 2 alliés supplémentaires, les plus blessés d’abord, chaque rebond soignant 50% de moins.",
+                 "deDE": "Euer Beruhigender Nebel und der Eurer Jadeschlangenstatue springen auf 2 weitere Verbündete über, die am schwersten verletzten zuerst; jeder Sprung heilt 50% weniger.",
+                 "esES": "Tu Niebla calmante y la de tu estatua del Dragón de Jade rebotan en 2 aliados adicionales, primero los más heridos, y cada rebote sana un 50% menos.",
+                 "ruRU": "Ваш Успокаивающий туман и туман вашей статуи Нефритовой Змеи перескакивают еще на 2 союзников, начиная с самых раненых; каждый скачок исцеляет на 50% меньше."},
     S_KEG: {"enUS": "Hurl a keg at the target location. It explodes, dealing $s1 Fire damage plus 50% of your attack power to enemies within 8 yards and causing a high amount of threat. Enemies hit miss all their melee attacks against you for 3 sec.",
             "frFR": "Lance un fût à l’endroit ciblé. Il explose et inflige $s1 points de dégâts de Feu plus 50% de votre puissance d’attaque aux ennemis à moins de 8 mètres, en générant une forte menace. Les ennemis touchés ratent toutes leurs attaques de mêlée contre vous pendant 3 s.",
             "deDE": "Schleudert ein Fass auf den Zielort. Es explodiert, fügt Gegnern im Umkreis von 8 Metern $s1 Feuerschaden plus 50% Eurer Angriffskraft zu und erzeugt sehr viel Bedrohung. Getroffene Gegner verfehlen Euch 3 Sek. lang mit all ihren Nahkampfangriffen.",
@@ -415,7 +417,7 @@ def spells():
     r[FIELD["Attributes"]] = 0x40 | 0x80
     r[FIELD["DurationIndex"]] = 21
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Holy_Heal02")
-    effect(r, 1, Effect=6, Aura=4, TargetA=1, BasePoints=-34)            # -33 % par rebond (lu par le script)
+    effect(r, 1, Effect=6, Aura=4, TargetA=1, BasePoints=-51)            # -50 % par rebond (lu par le script ; Maitre, 25/10/2026 15:58 UTC)
     set_text(r, "Description", D[S_WHISPERS])
     r = add(blank_spell(S_WHISPERS_HEAL, N["whispers"]))
     r[FIELD["AttributesEx"]] = no_log
@@ -625,7 +627,16 @@ def visuals():
     nuage[21] = MOTION_NUAGE                                # l'ondulation, sans changer la durée du vol
     fut = sans_animation(10408, VIS_FUT)
     fut[1], fut[2] = KIT_FUT_PRE, KIT_FUT_CAST
-    rows = [don, nuage, tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue, fut, sans_animation(58, VIS_MURMURES)]
+    # le rebond de Murmures : lancé par le maillon précédent (src/monk_weapons.cpp), son kit d'incantation est celui de la
+    # canalisation de la Brume apaisante sans son animation : ses procédures 0 (chaînes 81100 à 81102, comme le kit
+    # d'incantation 3169 du Salve de guérison) tracent le fil du lanceur à la cible
+    chaine = list(KIT[KIT_BRUME_CANAL])
+    chaine[0], chaine[1], chaine[2] = KIT_MURMURES, -1, -1
+    chaine[15] = 0                                         # sans le son en boucle de la canalisation (rejoué à chaque tic)
+    kits.append(chaine)
+    murmures = sans_animation(58, VIS_MURMURES)
+    murmures[2] = KIT_MURMURES
+    rows = [don, nuage, tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue, fut, murmures]
     names = [[EFF_NUAGE, "monk_soothingmist_missile", "Spells\\ArtifactWeapons\\monk_soothingmist_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)],
              [EFF_LAMES, "wind_chakram_missile", "Spells\\ArtifactWeapons\\wind_chakram_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)]]
     return rows, kits, names

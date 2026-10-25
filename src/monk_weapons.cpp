@@ -19,7 +19,7 @@
  *     les périodiques et canalisés, Brumes de rénovation, enveloppante et apaisante, Sphère zen, de Yu'lon ;
  *     l'Extraction du mal, que le Moine lance sur lui-même, elle la lance sur l'allié).
  *   - Murmures de Shaohao (84966, passif) : la Brume apaisante du Moine et de sa statue rebondit sur 2 alliés
- *     de plus, les plus bas en vie, -33 % par rebond (84967) : monk_weapons_shaohao.
+ *     de plus, en chaîne (A -> B -> C), 50 % du maillon précédent, le fil visible (84967) : monk_weapons_shaohao.
  * Jin Gu, bâton du Roi-Singe (84036)
  *   - Fût explosif (84980) : dégâts et menace en base ; les ennemis touchés ratent toutes leurs attaques de
  *     mêlée contre le Moine 3 s : monk_weapons_fut_explosif.
@@ -668,8 +668,8 @@ class spell_yuwu_yulon_brume : public AuraScript
 };
 
 // Murmures de Shaohao : chaque soin de la Brume apaisante du Moine ou de sa statue (soin périodique : le hook
-// reçoit la cible puis le lanceur, SpellAuraEffects.cpp 6657) rebondit sur les 2 alliés les plus bas en vie autour
-// de la cible, chaque rebond à -33 % (l'aura 84966, son effet 0) du précédent
+// reçoit la cible puis le lanceur, SpellAuraEffects.cpp 6657) rebondit en chaîne sur 2 alliés : le plus bas en vie
+// autour de la cible, puis le plus bas autour de lui, chaque rebond à -50 % (l'aura 84966, son effet 0) du précédent
 class monk_weapons_shaohao : public UnitScript
 {
 public:
@@ -686,14 +686,28 @@ public:
         AuraEffect const* murmures = moine ? moine->GetAuraEffect(SPELL_YUWU_MURMURES, EFFECT_0) : nullptr;
         if (!murmures)
             return;
+        // la chaîne (Maitre, 25/10/2026 15:58 UTC) : le Moine -> A -> B -> C, chaque maillon à 50 % du précédent. Chaque
+        // rebond part du maillon précédent, le Moine pour lanceur d'origine (son soin, sa menace) : le client trace le fil
+        // de la Brume apaisante du lanceur à la cible (le kit d'incantation de 84967, tools/monk_part.py), à chaque tic.
+        // Déclenché, il ne coupe rien de ce que le maillon lance lui-même, et aucun champ de canalisation n'est posé sur lui.
         int32 montant = int32(soin);
-        uint32 rebonds = 0;
-        for (Unit* allie : AlliesBlesses(moine, cible, SHAOHAO_PORTEE, cible))
+        Unit* maillon = cible;
+        std::vector<Unit*> deja = { cible };
+        for (uint32 rebond = 0; rebond < SHAOHAO_REBONDS; ++rebond)
         {
-            if (rebonds++ >= SHAOHAO_REBONDS)
+            Unit* suivant = nullptr;
+            for (Unit* allie : AlliesBlesses(moine, maillon, SHAOHAO_PORTEE, maillon))
+                if (std::find(deja.begin(), deja.end(), allie) == deja.end())
+                {
+                    suivant = allie;
+                    break;
+                }
+            if (!suivant)
                 break;
             montant = std::max<int32>(1, CalculatePct(montant, 100 + murmures->GetAmount()));
-            moine->CastCustomSpell(allie, SPELL_YUWU_MURMURES_SOIN, &montant, nullptr, nullptr, true);
+            maillon->CastCustomSpell(suivant, SPELL_YUWU_MURMURES_SOIN, &montant, nullptr, nullptr, true, nullptr, nullptr, moine->GetGUID());
+            deja.push_back(suivant);
+            maillon = suivant;
         }
     }
 };
