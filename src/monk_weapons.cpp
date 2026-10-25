@@ -669,7 +669,8 @@ class spell_yuwu_yulon_brume : public AuraScript
 
 // Murmures de Shaohao : chaque soin de la Brume apaisante du Moine ou de sa statue (soin périodique : le hook
 // reçoit la cible puis le lanceur, SpellAuraEffects.cpp 6657) rebondit en chaîne sur 2 alliés : le plus bas en vie
-// autour de la cible, puis le plus bas autour de lui, chaque rebond à -50 % (l'aura 84966, son effet 0) du précédent
+// autour de la cible, puis le plus bas autour de lui (personne de blessé : un membre du groupe au hasard), chaque
+// rebond à -50 % (l'aura 84966, son effet 0) du précédent
 class monk_weapons_shaohao : public UnitScript
 {
 public:
@@ -702,6 +703,19 @@ public:
                     suivant = allie;
                     break;
                 }
+            // personne de blessé : un membre du groupe au hasard, à portée du maillon (Maitre, 25/10/2026 16:25 UTC)
+            if (!suivant)
+            {
+                std::vector<Unit*> autres;
+                if (Group* groupe = moine->GetGroup())
+                    for (GroupReference* ref = groupe->GetFirstMember(); ref; ref = ref->next())
+                        if (Player* membre = ref->GetSource())
+                            if (membre->IsAlive() && membre->IsInMap(maillon) && maillon->IsWithinDistInMap(membre, SHAOHAO_PORTEE)
+                                && maillon->IsWithinLOSInMap(membre) && std::find(deja.begin(), deja.end(), membre) == deja.end())
+                                autres.push_back(membre);
+                if (!autres.empty())
+                    suivant = Acore::Containers::SelectRandomContainerElement(autres);
+            }
             if (!suivant)
                 break;
             montant = std::max<int32>(1, CalculatePct(montant, 100 + murmures->GetAmount()));
