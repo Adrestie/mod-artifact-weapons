@@ -705,8 +705,8 @@ def main():
     displays = [
         [YUWU, "staff_2h_artifactshaohao_d_03.mdx", "", "staff_2h_artifactshaohao_d_03_jade", "", "inv_staff_2h_artifactshaohao_d_03", ""],
         [JINGU, "staff_2h_artifactmonkeyking_d_03.mdx", "", "staff_2h_artifactmonkeyking_d_03red", "", "inv_staff_2h_artifactmonkeyking_d_03", ""],
-        # le poing retail tourné de -60° autour de x dans la prise (tools/fist_rotate.py) : la lame vise droit devant au moment
-        # du coup à mains nues ; la copie gauche en est le reflet en y (tools/fist_mirror.py)
+        # le poing retail tel quel, la copie gauche en est le reflet en y (tools/fist_mirror.py) ; sans inclinaison (Maitre,
+        # 25/10/2026 11:57 UTC : le souci venait des animations d'attaque ; tools/fist_rotate.py reste pour mémoire)
         [TIANLEI, "hand_1h_artifactskywall_d_06.mdx", "", "hand_1h_artifactskywall_d_06_jade", "", "inv_hand_1h_artifactskywall_d_06", ""],
         [TIANFENG, "hand_1h_artifactskywall_d_06_l.mdx", "", "hand_1h_artifactskywall_d_06_white", "", "inv_hand_1h_artifactskywall_d_06dual", ""],
     ]
