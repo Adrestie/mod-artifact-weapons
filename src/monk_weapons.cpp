@@ -77,10 +77,10 @@ enum MonkWeaponSpells
     SPELL_MONK_FISTS_OF_FURY       = 81198,
     SPELL_MONK_SOOTHING_MIST       = 81771,
     SPELL_MONK_STATUE_SOOTHING     = 81896,   // la Brume apaisante de la statue du Serpent de jade
-    // des sorts du Moine que Yu'lon refait autrement qu'il ne les lance (mod-custom-classes, src/monk/monk_spells.cpp) :
-    // les trois Brumes ne soignent pas elles-mêmes (un effet factice dont le script lance le soin, rang pour rang)
-    SPELL_MONK_SURGING_MIST        = 81782,   // 8 rangs ; le soin : 81790 et suivants
-    SPELL_MONK_SURGING_MIST_HEAL   = 81790,
+    // des sorts du Moine (mod-custom-classes, src/monk/monk_spells.cpp) : les trois Brumes ne soignent pas elles-mêmes, un
+    // effet factice dont le script lance le soin, rang pour rang ; la copie refait la Brume (son script compte : la
+    // Surtension y gagne ~10 %), et ramène à 75 % le soin périodique qu'elle pose
+    SPELL_MONK_SURGING_MIST        = 81782,   // 8 rangs (son script lance le soin 81790 et suivants)
     SPELL_MONK_ENVELOPING_MIST     = 81798,   // 10 rangs ; le soin périodique : 81808 et suivants
     SPELL_MONK_ENVELOPING_MIST_HOT = 81808,
     SPELL_MONK_RENEWING_MIST       = 81818,   // 7 rangs ; le soin périodique : 81825 et suivants
@@ -113,6 +113,8 @@ static constexpr float SHAOHAO_PORTEE   = 40.0f;   // les alliés des rebonds, a
 static constexpr uint32 SHAOHAO_REBONDS = 2;
 static constexpr uint32 GRUE_PERIODE    = 500;     // ms, une impulsion de Vents croisés
 static constexpr float GRUE_PORTEE      = 8.0f;    // la portée de Poings de fureur : la cible de la grue sans cible du Moine
+static constexpr uint32 GRUE_SANS_POINGS = 1500;   // ms sans Poings de fureur avant que la grue s'en aille
+static constexpr uint32 GRUE_VIE_MAX     = 10000;  // ms, la durée de vie de la grue au plus
 static constexpr uint32 PAUME_RECHARGE  = 4000;    // ms entre deux Paumes au visage
 static constexpr int32 PAUME_BREUVAGES  = -1000;   // ms ôtées aux breuvages
 static constexpr uint32 NUAGES_MAX      = 10;      // les cumuls de 84961
@@ -415,29 +417,36 @@ struct npc_yuwu_yulon : public ScriptedAI
     }
 };
 
-// le sort que Yu'lon lance pour refaire celui du Moine, ou 0 : les trois Brumes, qui soignent par leur script, deviennent
-// leur soin au même rang ; l'Extraction du mal, qui soigne son lanceur, sa variante sur un allié ; tout autre sort qui
-// soigne reste lui-même, sauf s'il ne vise que son lanceur (Yu'lon se soignerait)
-static uint32 SortDeYulon(SpellInfo const* sort)
+// la copie d'un sort du Moine : le sort que le Moine relance pour Yu'lon (0 : aucun), et le soin périodique qu'il pose,
+// ramené à 75 % après coup (0 : aucun). Les trois Brumes se refont elles-mêmes (leur script pose le soin) ; l'Extraction du
+// mal, qui soigne son lanceur, devient sa variante sur un allié ; tout autre sort qui soigne reste lui-même, sauf s'il ne
+// vise que son lanceur
+struct CopieDeYulon
+{
+    uint32 lance = 0;
+    uint32 periodique = 0;
+};
+
+static CopieDeYulon SortDeYulon(SpellInfo const* sort)
 {
     uint32 const premier = sort->GetFirstRankSpell()->Id;
     uint32 const rang = sort->Id - premier;
     switch (premier)
     {
-        case SPELL_MONK_SURGING_MIST:       return SPELL_MONK_SURGING_MIST_HEAL + rang;
-        case SPELL_MONK_ENVELOPING_MIST:    return SPELL_MONK_ENVELOPING_MIST_HOT + rang;
-        case SPELL_MONK_RENEWING_MIST:      return SPELL_MONK_RENEWING_MIST_HOT + rang;
-        case SPELL_MONK_EXPEL_HARM:         return SPELL_MONK_EXPEL_HARM_ALLY;
+        case SPELL_MONK_SURGING_MIST:       return { sort->Id, 0 };
+        case SPELL_MONK_ENVELOPING_MIST:    return { sort->Id, SPELL_MONK_ENVELOPING_MIST_HOT + rang };
+        case SPELL_MONK_RENEWING_MIST:      return { sort->Id, SPELL_MONK_RENEWING_MIST_HOT + rang };
+        case SPELL_MONK_EXPEL_HARM:         return { SPELL_MONK_EXPEL_HARM_ALLY, 0 };
         case SPELL_MONK_EXPEL_HARM_SERPENT:
-            return SPELL_MONK_EXPEL_HARM_ALLY_SERPENT + (rang > EXPEL_HARM_SERPENT_ALLY_DECALAGE ? rang - EXPEL_HARM_SERPENT_ALLY_DECALAGE : 0);
+            return { SPELL_MONK_EXPEL_HARM_ALLY_SERPENT + (rang > EXPEL_HARM_SERPENT_ALLY_DECALAGE ? rang - EXPEL_HARM_SERPENT_ALLY_DECALAGE : 0), 0 };
         default: break;
     }
     if (!Soigne(sort))
-        return 0;
+        return {};
     for (SpellEffectInfo const& effet : sort->GetEffects())
         if (effet.IsEffect() && effet.TargetA.GetTarget() != TARGET_UNIT_CASTER)
-            return sort->Id;
-    return 0;
+            return { sort->Id, sort->Id };
+    return {};
 }
 
 // Yu'lon refait chaque sort de soin que le Moine lance lui-même (pas un sort déclenché) sur l'allié le plus bas
@@ -453,8 +462,8 @@ public:
     {
         if (!spell || spell->IsTriggered())
             return;
-        uint32 const copie = SortDeYulon(spell->GetSpellInfo());
-        if (!copie || !sSpellMgr->GetSpellInfo(copie))
+        CopieDeYulon const copie = SortDeYulon(spell->GetSpellInfo());
+        if (!copie.lance || !sSpellMgr->GetSpellInfo(copie.lance))
             return;
         ObjectGuid yulonGuid;
         {
@@ -470,12 +479,12 @@ public:
         std::vector<Unit*> allies = AlliesBlesses(moine, yulon, YULON_PORTEE, nullptr);
         Unit* cible = allies.empty() ? moine : allies.front();
         copieDeYulon = true;
-        moine->CastSpell(cible, copie, TRIGGERED_FULL_MASK);
+        moine->CastSpell(cible, copie.lance, TRIGGERED_FULL_MASK);
         copieDeYulon = false;
         yulon->HandleEmoteCommand(EMOTE_ONESHOT_SPELL_CAST_OMNI);
         // ses soins périodiques : le montant de chaque tic est fixé à la pose, ramené ici à 75 % (une aura qui vient d'être
         // posée ou rafraîchie par cette copie a toute sa durée)
-        if (Aura* aura = cible->GetAura(copie, moine->GetGUID()))
+        if (Aura* aura = copie.periodique ? cible->GetAura(copie.periodique, moine->GetGUID()) : nullptr)
             if (aura->GetDuration() == aura->GetMaxDuration())
                 for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
                     if (AuraEffect* effet = aura->GetEffect(i))
@@ -597,8 +606,8 @@ public:
             std::lock_guard<std::mutex> garde(monkWeaponsLock);
             cibleDeLaGrue[moine->GetGUID()] = cible->GetGUID();
         }
-        int32 duree = std::max<int32>(GRUE_PERIODE, spell->GetSpellInfo()->GetMaxDuration());
-        moine->SummonCreature(NPC_TIANFENG_GRUE, cible->GetPosition(), TEMPSUMMON_TIMED_DESPAWN, uint32(duree));
+        // la grue part d'elle-même quand les Poings de fureur cessent (npc_tian_feng_grue) ; GRUE_VIE_MAX n'est qu'un filet
+        moine->SummonCreature(NPC_TIANFENG_GRUE, cible->GetPosition(), TEMPSUMMON_TIMED_DESPAWN, GRUE_VIE_MAX);
     }
 };
 
@@ -617,6 +626,7 @@ struct npc_tian_feng_grue : public ScriptedAI
     ObjectGuid moineGuid;
     ObjectGuid cibleGuid;
     uint32 minuteur = GRUE_PERIODE;
+    uint32 sansPoings = 0;                 // ms depuis que le Moine n'a plus Poings de fureur
 
     void IsSummonedBy(WorldObject* summoner) override
     {
@@ -654,15 +664,24 @@ struct npc_tian_feng_grue : public ScriptedAI
         Player* moine = ObjectAccessor::GetPlayer(*me, moineGuid);
         Unit* cible = ObjectAccessor::GetUnit(*me, cibleGuid);
         // Poings de fureur de mod-custom-classes : une aura (81198) qui frappe par 81612 et 81613, pas une canalisation que le
-        // cœur connaît ; la grue reste tant que l'une ou l'autre dure
+        // cœur connaît ; elle est posée, retirée au bout d'une seconde, puis reposée pour le reste du sort. La grue frappe
+        // tant qu'elle est là, attend pendant le trou, et ne part qu'après GRUE_SANS_POINGS sans elle
         Spell const* canal = moine ? moine->GetCurrentSpell(CURRENT_CHANNELED_SPELL) : nullptr;
         bool const poings = moine && (moine->HasAura(SPELL_MONK_FISTS_OF_FURY)
             || (canal && canal->GetSpellInfo()->GetFirstRankSpell()->Id == SPELL_MONK_FISTS_OF_FURY));
-        if (!moine || !cible || !cible->IsAlive() || !poings)
+        if (!moine || !cible || !cible->IsAlive())
         {
             me->DespawnOrUnsummon();
             return;
         }
+        if (!poings)
+        {
+            sansPoings += GRUE_PERIODE;
+            if (sansPoings >= GRUE_SANS_POINGS)
+                me->DespawnOrUnsummon();
+            return;
+        }
+        sansPoings = 0;
         me->NearTeleportTo(cible->GetPositionX(), cible->GetPositionY(), cible->GetPositionZ() + 2.0f, me->GetOrientation());
         // la grue n'est que l'image : une créature ne trouve pas de cible contre un mannequin neutre ; le Moine lance
         // l'impulsion sur la cible (84462 : 8 m autour d'elle), avec ses propres règles d'attaque
