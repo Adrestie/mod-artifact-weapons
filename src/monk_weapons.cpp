@@ -9,8 +9,9 @@
  *   - Don de Yu Wu (84960, passif) : chaque soin, 25 % de chances d'un Nuage de brume (84961, 10 au plus,
  *     60 s) : en base, aura de déclenchement et spell_proc. Chaque nuage gagné se pose aussi au sol près de
  *     l'allié soigné (84207), vu du seul Moine : spell_yuwu_don_nuage et npc_yuwu_nuage.
- *   - Don de Yu Wu (84962, utilisation) : consomme les nuages, soigne la cible de 1 800 (+20 % de la
- *     puissance des soins) par nuage ; les nuages du sol filent vers le Moine et disparaissent : spell_yuwu_don.
+ *   - Don de Yu Wu (84962, utilisation, 2 s d'incantation) : consomme les nuages, soigne la cible de 1 800 (+20 % de
+ *     la puissance des soins) par nuage. Pendant l'incantation, le Moine brandit son bâton ; chaque nuage du sol part
+ *     en projectile (84963) vers lui, lancé pour arriver à la fin de l'incantation : spell_yuwu_don et npc_yuwu_nuage.
  *   - Brumes de Yu Wu (84964, passif) : un sort de soin instantané qui soigne, 10 % de chances (130 s de
  *     recharge interne, spell_proc) d'invoquer Yu'lon 12 s (84965) : spell_yuwu_brumes ; Yu'lon refait les
  *     sorts de soin du Moine sur les alliés les plus bas en vie, à 75 % : npc_yuwu_yulon, monk_weapons_yulon_copy
@@ -31,8 +32,11 @@
  *   - Vents croisés (84460) : pendant Poings de fureur, une grue (84206) tournoie au-dessus de la cible, et le
  *     Moine frappe toutes les 0,5 s les ennemis à 8 m d'elle (84462) : monk_weapons_vents_croises et
  *     npc_tian_feng_grue.
- *   - Frappe du Seigneur des vents (ensemble 84037) : l'aura de l'ensemble (84463) apprend la frappe (84464)
- *     tant que les deux poings sont portés : spell_poings_des_cieux_ensemble.
+ *   - Orage intérieur (84923, Tian Lei) : chaque Paume du tigre qui touche ajoute une charge (84924, 5 au plus) ;
+ *     à 5, la Frappe du voile noir suivante fait tomber la foudre (84925) : spell_tian_lei_orage_interieur.
+ *   - Lames de vent (84463, Tian Feng) : chaque coup du Coup tournoyant de la grue lance une lame de vent sur
+ *     l'ennemi touché (84464) : spell_tian_feng_lames_de_vent.
+ *   L'ensemble des deux poings (et la Frappe du Seigneur des vents qu'il apprenait) a été retiré le 25/10/2026.
  * ---------------------------------------------------------------------------
  */
 
@@ -59,6 +63,7 @@ enum MonkWeaponSpells
 {
     // Yu Wu
     SPELL_YUWU_NUAGE            = 84961,
+    SPELL_YUWU_NUAGE_PROJECTILE = 84963,
     SPELL_YUWU_YULON            = 84965,
     SPELL_YUWU_MURMURES         = 84966,
     SPELL_YUWU_MURMURES_SOIN    = 84967,
@@ -68,12 +73,18 @@ enum MonkWeaponSpells
     // Poings des Cieux
     SPELL_TIANFENG_VENTS_CROISES   = 84460,
     SPELL_TIANFENG_GRUE_IMPULSION  = 84462,
-    SPELL_POINGS_FRAPPE            = 84464,
+    SPELL_TIANFENG_LAMES           = 84463,
+    SPELL_TIANFENG_LAMES_COUP      = 84464,
+    SPELL_TIANLEI_ORAGE            = 84923,
+    SPELL_TIANLEI_ORAGE_CHARGE     = 84924,
+    SPELL_TIANLEI_ORAGE_FOUDRE     = 84925,
     NPC_YUWU_YULON              = 84205,
     NPC_TIANFENG_GRUE              = 84206,
     NPC_YUWU_NUAGE                 = 84207,
     // les sorts du Moine (mod-custom-classes, premiers rangs)
     SPELL_MONK_TIGER_PALM          = 81113,
+    SPELL_MONK_BLACKOUT_KICK       = 81125,
+    SPELL_MONK_SPINNING_CRANE_DMG  = 81576,   // chaque coup du Coup tournoyant de la grue (81159 et ses rangs du Serpent)
     SPELL_MONK_FISTS_OF_FURY       = 81198,
     SPELL_MONK_SOOTHING_MIST       = 81771,
     SPELL_MONK_STATUE_SOOTHING     = 81896,   // la Brume apaisante de la statue du Serpent de jade
@@ -121,7 +132,9 @@ static constexpr int32 PAUME_BREUVAGES  = -1000;   // ms ôtées aux breuvages
 static constexpr uint32 NUAGES_MAX      = 10;      // les cumuls de 84961
 static constexpr uint32 NUAGE_DUREE     = 60000;   // ms, la durée de 84961
 static constexpr float NUAGE_ECART      = 2.5f;    // le nuage se pose à cette distance de l'allié soigné
-static constexpr float NUAGE_VITESSE    = 14.0f;   // m/s, son vol vers le Moine qui le consomme
+static constexpr float NUAGE_VITESSE    = 20.0f;   // m/s, le projectile 84963 (la vitesse de son Spell.dbc, tools/monk_part.py)
+static constexpr uint32 NUAGE_FONDU     = 200;     // ms : le nuage devient invisible quand son projectile part
+static constexpr uint32 ORAGE_CHARGES   = 5;
 
 namespace
 {
@@ -206,11 +219,27 @@ class spell_yuwu_don : public SpellScript
     PrepareSpellScript(spell_yuwu_don);
 
     uint8 nuages = 0;
+    bool lances = false;
 
+    // le premier contrôle (Spell::prepare, au début de l'incantation) lance les nuages : chacun part au moment où son
+    // projectile, à NUAGE_VITESSE, arrive sur le Moine à la fin de l'incantation ; le second (Spell::cast) ne refait rien
     SpellCastResult CheckCast()
     {
         Unit* moine = GetCaster();
-        return moine && moine->HasAura(SPELL_YUWU_NUAGE) ? SPELL_CAST_OK : SPELL_FAILED_CASTER_AURASTATE;
+        if (!moine || !moine->HasAura(SPELL_YUWU_NUAGE))
+            return SPELL_FAILED_CASTER_AURASTATE;
+        if (!lances)
+        {
+            lances = true;
+            uint32 const incantation = GetSpellInfo()->CalcCastTime(moine);
+            for (Creature* nuage : PrendsNuages(moine))
+            {
+                uint32 const vol = uint32(1000.0f * nuage->GetDistance(moine) / NUAGE_VITESSE);
+                nuage->AI()->SetGUID(moine->GetGUID());
+                nuage->AI()->SetData(0, incantation > vol ? incantation - vol : 0);
+            }
+        }
+        return SPELL_CAST_OK;
     }
 
     void HandleHeal(SpellEffIndex /*effIndex*/)
@@ -226,17 +255,7 @@ class spell_yuwu_don : public SpellScript
         Unit* moine = GetCaster();
         if (!moine || !nuages)
             return;
-        // les nuages du sol filent vers le Moine, puis disparaissent ; pris avant le retrait de l'aura, qui sinon les efface
-        for (Creature* nuage : PrendsNuages(moine))
-        {
-            float const distance = nuage->GetDistance(moine);
-            nuage->SetDisableGravity(true);
-            nuage->SetCanFly(true);
-            nuage->GetMotionMaster()->Clear();
-            nuage->GetMotionMaster()->MovePoint(0, moine->GetPositionX(), moine->GetPositionY(), moine->GetPositionZ() + 1.0f,
-                FORCED_MOVEMENT_NONE, NUAGE_VITESSE, 0.0f, false);
-            nuage->DespawnOrUnsummon(Milliseconds(uint32(1000.0f * distance / NUAGE_VITESSE) + 300));
-        }
+        // les nuages sont partis au début de l'incantation (CheckCast)
         moine->RemoveAurasDueToSpell(SPELL_YUWU_NUAGE);
     }
 
@@ -313,8 +332,10 @@ class spell_yuwu_nuage : public AuraScript
 };
 
 /*
- * npc_yuwu_nuage — créature 84207, un Nuage de brume au sol (gaz blanc du client 3.3.5, affichage 22460)
- * Immobile et inerte ; le Don le fait voler vers le Moine.
+ * npc_yuwu_nuage — créature 84207, un Nuage de brume au sol (le nuage du Don de Sheilun, porté du retail)
+ * Immobile et inerte. Le Don lui donne le Moine (SetGUID) puis le délai avant son départ (SetData) : à l'heure, il
+ * lance sur le Moine son projectile (84963), s'efface, et disparaît une fois le projectile arrivé (un lanceur qui
+ * disparaît trop tôt emporterait son projectile).
  */
 struct npc_yuwu_nuage : public ScriptedAI
 {
@@ -323,9 +344,36 @@ struct npc_yuwu_nuage : public ScriptedAI
         me->SetReactState(REACT_PASSIVE);
     }
 
+    ObjectGuid moineGuid;
+    int32 depart = -1;                     // ms avant le départ ; -1 : pas encore appelé
+
+    void SetGUID(ObjectGuid const& guid, int32 /*id*/) override { moineGuid = guid; }
+    void SetData(uint32 /*id*/, uint32 delai) override { depart = int32(delai); }
+
     void AttackStart(Unit* /*who*/) override { }
     void MoveInLineOfSight(Unit* /*who*/) override { }
-    void UpdateAI(uint32 /*diff*/) override { }
+
+    void UpdateAI(uint32 diff) override
+    {
+        if (depart < 0)
+            return;
+        if (depart > int32(diff))
+        {
+            depart -= int32(diff);
+            return;
+        }
+        depart = -1;
+        Unit* moine = ObjectAccessor::GetUnit(*me, moineGuid);
+        if (!moine)
+        {
+            me->DespawnOrUnsummon();
+            return;
+        }
+        uint32 const vol = uint32(1000.0f * me->GetDistance(moine) / NUAGE_VITESSE);
+        me->CastSpell(moine, SPELL_YUWU_NUAGE_PROJECTILE, true);
+        me->SetDisplayId(11686);           // invisible : le nuage est devenu son projectile
+        me->DespawnOrUnsummon(Milliseconds(vol + NUAGE_FONDU + 1000));
+    }
 };
 
 /*
@@ -774,31 +822,80 @@ class spell_tian_lei_charge : public AuraScript
 };
 
 /*
- * spell_poings_des_cieux_ensemble — sort 84463 (bonus de l'ensemble 84037, Tian Lei et Tian Feng portés)
- * L'aura de l'ensemble apprend Frappe du Seigneur des vents (84464), pour la session seulement (rien en base), et
- * la reprend quand l'ensemble se défait.
+ * spell_tian_lei_orage_interieur — sort 84923 (passif de Tian Lei)
+ * Chaque Paume du tigre qui touche ajoute une charge (84924, visible, 5 au plus). À 5 charges, la Frappe du voile noir
+ * qui touche fait tomber la foudre sur sa cible (84925 : la cible et les ennemis à 8 m), puis retire les charges.
  */
-class spell_poings_des_cieux_ensemble : public AuraScript
+class spell_tian_lei_orage_interieur : public AuraScript
 {
-    PrepareAuraScript(spell_poings_des_cieux_ensemble);
+    PrepareAuraScript(spell_tian_lei_orage_interieur);
 
-    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    bool CheckProc(ProcEventInfo& eventInfo)
     {
-        if (Player* moine = GetTarget()->ToPlayer())
-            if (!moine->HasSpell(SPELL_POINGS_FRAPPE))
-                moine->learnSpell(SPELL_POINGS_FRAPPE, true);
+        SpellInfo const* sort = eventInfo.GetSpellInfo();
+        DamageInfo const* degats = eventInfo.GetDamageInfo();
+        if (!sort || !degats || !degats->GetDamage() || !eventInfo.GetProcTarget())
+            return false;
+        uint32 const premier = sort->GetFirstRankSpell()->Id;
+        return premier == SPELL_MONK_TIGER_PALM || premier == SPELL_MONK_BLACKOUT_KICK;
     }
 
-    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+    void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
     {
-        if (Player* moine = GetTarget()->ToPlayer())
-            moine->removeSpell(SPELL_POINGS_FRAPPE, SPEC_MASK_ALL, true);
+        PreventDefaultAction();
+        Unit* moine = GetTarget();
+        Unit* cible = eventInfo.GetProcTarget();
+        if (!moine || !cible)
+            return;
+        if (eventInfo.GetSpellInfo()->GetFirstRankSpell()->Id == SPELL_MONK_TIGER_PALM)
+        {
+            moine->CastSpell(moine, SPELL_TIANLEI_ORAGE_CHARGE, true);
+            return;
+        }
+        Aura* charges = moine->GetAura(SPELL_TIANLEI_ORAGE_CHARGE);
+        if (!charges || charges->GetStackAmount() < ORAGE_CHARGES)
+            return;
+        moine->CastSpell(cible, SPELL_TIANLEI_ORAGE_FOUDRE, true);
+        moine->RemoveAurasDueToSpell(SPELL_TIANLEI_ORAGE_CHARGE);
     }
 
     void Register() override
     {
-        AfterEffectApply += AuraEffectApplyFn(spell_poings_des_cieux_ensemble::HandleApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
-        AfterEffectRemove += AuraEffectRemoveFn(spell_poings_des_cieux_ensemble::HandleRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
+        DoCheckProc += AuraCheckProcFn(spell_tian_lei_orage_interieur::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_tian_lei_orage_interieur::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
+/*
+ * spell_tian_feng_lames_de_vent — sort 84463 (passif de Tian Feng)
+ * Chaque coup du Coup tournoyant de la grue (81576, un par ennemi et par tic) lance une lame de vent (84464) sur
+ * l'ennemi touché. Ces coups sont déclenchés par l'aura du Coup tournoyant : la ligne spell_proc de 84463 porte
+ * PROC_ATTR_TRIGGERED_CAN_PROC.
+ */
+class spell_tian_feng_lames_de_vent : public AuraScript
+{
+    PrepareAuraScript(spell_tian_feng_lames_de_vent);
+
+    bool CheckProc(ProcEventInfo& eventInfo)
+    {
+        SpellInfo const* sort = eventInfo.GetSpellInfo();
+        DamageInfo const* degats = eventInfo.GetDamageInfo();
+        return sort && degats && degats->GetDamage() && eventInfo.GetProcTarget()
+            && sort->GetFirstRankSpell()->Id == SPELL_MONK_SPINNING_CRANE_DMG;
+    }
+
+    void HandleProc(AuraEffect const* /*aurEff*/, ProcEventInfo& eventInfo)
+    {
+        PreventDefaultAction();
+        if (Unit* moine = GetTarget())
+            if (Unit* cible = eventInfo.GetProcTarget())
+                moine->CastSpell(cible, SPELL_TIANFENG_LAMES_COUP, true);
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_tian_feng_lames_de_vent::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_tian_feng_lames_de_vent::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
     }
 };
 
@@ -818,5 +915,6 @@ void SC_AddMonkWeaponScripts()
     new monk_weapons_paume_au_visage();
     new monk_weapons_vents_croises();
     RegisterCreatureAI(npc_tian_feng_grue);
-    RegisterSpellScript(spell_poings_des_cieux_ensemble);
+    RegisterSpellScript(spell_tian_lei_orage_interieur);
+    RegisterSpellScript(spell_tian_feng_lames_de_vent);
 }

@@ -6,7 +6,13 @@ condition classes [10]). Cahier validé par Maitre le 24/10/2026 22:02 UTC (fil 
 
 <dossier de travail> : les modèles déjà convertis pour 3.3.5 (m2port : port.py puis validate.py) et leurs textures,
 dans les sous-dossiers ported/ (les armes), yulon_final/ (Yu'lon), ported_crane/ (la grue), export/tex/ (les peaux
-choisies et les icônes), pictures/ (les images des quêtes, tools/quest_picture.py).
+choisies et les icônes), pictures/ (les images des quêtes, tools/quest_picture.py), ported_sheilun/ (les modèles de sorts
+portés par m2port : le nuage du Don de Sheilun, le projectile de brume, la lame de vent ; écrits sous Spells/ArtifactWeapons).
+
+Les visuels de sorts (SpellVisual, SpellVisualKit, SpellVisualEffectName) partent des lignes du CLIENT (son patch-Z) :
+c'est lui qui les joue, et ses kits diffèrent de ceux du serveur. Aucun kit d'avant-incantation ni d'incantation emprunté
+n'est gardé : leurs animations (51 à 54) ont WeaponFlags 4, qui range les armes, et un poing rangé disparaît. Seul le Don
+de Yu Wu en a, avec BattleRoar (55, WeaponFlags 0) : le Moine brandit son bâton.
 
 Écrit data/parts/monk/ : installer.json (les lignes DBC : Spell, Item, ItemDisplayInfo, ItemSet, CreatureDisplayInfo,
 CreatureModelData ; les lignes de base à retirer), data/sql/world/mod-artifact-weapons--monk_world.sql et
@@ -46,8 +52,8 @@ BOOK = {YUWU: 84135, JINGU: 84136, TIANLEI: 84137, TIANFENG: 84138}
 QUEST = {YUWU: 84035, JINGU: 84036, TIANLEI: 84037, TIANFENG: 84038}       # quête et PNJ ont le même numéro
 ITEMSET = 84037                                     # Poings des Cieux (ItemSet.dbc)
 NPC_YULON, NPC_CRANE = 84205, 84206                 # créatures invoquées ; leurs affichages et modèles du même numéro
-NPC_CLOUD = 84207                                   # un Nuage de brume de Yu Wu au sol, vu du seul Moine (src/monk_weapons.cpp)
-CLOUD_DISPLAY = 22460                               # CloudSwampGas_Shadowmoon_White : un nuage de gaz blanc du client 3.3.5
+NPC_CLOUD = 84207                                   # un Nuage de brume de Yu Wu au sol, vu du seul Moine (src/monk_weapons.cpp) ;
+                                                    # son affichage, du même numéro : le nuage du Don de Sheilun (retail)
 SPAWN_GUID = {YUWU: 8400035, JINGU: 8400036, TIANLEI: 8400037, TIANFENG: 8400038}
 # les sorts
 S_GIFT, S_CLOUD, S_GIFT_USE = 84960, 84961, 84962
@@ -57,7 +63,17 @@ S_KEG, S_KEG_MISS = 84980, 84981
 S_FACEPALM, S_FORTIF = 84982, 84983
 S_THUNDER, S_THUNDER_BUFF, S_THUNDER_HIT = 84920, 84921, 84922
 S_CROSSWINDS, S_CRANE, S_CRANE_PULSE = 84460, 84461, 84462
-S_WINDLORD_SET, S_WINDLORD, S_WINDLORD_OFF = 84463, 84464, 84465
+S_WINDBLADES, S_WINDBLADES_HIT = 84463, 84464                  # Lames de vent (Tian Feng), choisies le 25/10 à la place de l'ensemble
+S_STORM, S_STORM_CHARGE, S_STORM_STRIKE = 84923, 84924, 84925  # Orage intérieur (Tian Lei)
+S_CLOUD_MISSILE = 84963                                         # un nuage aspiré par le Don, en projectile
+# les visuels de la partie (SpellVisual, SpellVisualKit, SpellVisualEffectName : tranche 84, 84035 à 84049)
+VIS_DON, VIS_NUAGE, VIS_TONNERRE, VIS_LAMES, VIS_ORAGE, VIS_GRUE, VIS_FUT, VIS_MURMURES = range(84035, 84043)
+KIT_DON_PRE, KIT_DON_CAST, KIT_GRUE = 84035, 84036, 84037
+EFF_NUAGE, EFF_LAMES = 84035, 84036
+VISUAL_IDS = [84035, 84049]
+ANIM_BATTLEROAR = 55                                            # WeaponFlags 0 : l'arme reste en main
+NUAGE_VITESSE = 20.0                                            # m/s, le projectile du nuage (src/monk_weapons.cpp le lit)
+CLIENT = r"E:\world of warcraft 3.3.5a hd"
 SPELL_BLOCKS = [[84460, 84479], [84920, 84939], [84960, 84999]]
 
 # les PNJ des quêtes : la plante des 32 autres armes (affichage 8391) et un nom sur le modèle des leurs (les syllabes
@@ -174,8 +190,8 @@ N = {
                "esES": "Fortificación de Jin Gu", "ruRU": "Укрепление Цзинь Гу"},
     "thunder": {"enUS": "Thunder Fist", "frFR": "Poing de tonnerre", "deDE": "Donnerfaust", "esES": "Puño del trueno", "ruRU": "Громовой кулак"},
     "crosswinds": {"enUS": "Crosswinds", "frFR": "Vents croisés", "deDE": "Kreuzwinde", "esES": "Vientos cruzados", "ruRU": "Встречные ветра"},
-    "windlord": {"enUS": "Strike of the Windlord", "frFR": "Frappe du Seigneur des vents", "deDE": "Schlag des Windfürsten",
-                 "esES": "Golpe del Señor del Viento", "ruRU": "Удар повелителя ветров"},
+    "windblades": {"enUS": "Wind Blades", "frFR": "Lames de vent", "deDE": "Windklingen", "esES": "Cuchillas de viento", "ruRU": "Лезвия ветра"},
+    "storm": {"enUS": "Inner Storm", "frFR": "Orage intérieur", "deDE": "Innerer Sturm", "esES": "Tormenta interior", "ruRU": "Внутренняя буря"},
 }
 D = {
     S_GIFT: {"enUS": "Each of your heals has a 25% chance to condense a Mist Cloud around Yu Wu, up to 10, for 1 min.",
@@ -226,21 +242,26 @@ D = {
                    "deDE": "Während Ihr Furorfäuste kanalisiert, trifft ein wirbelnder Kranich Gegner im Umkreis von 8 Metern um Euer Ziel und verursacht alle 0,5 Sek. $84462s1 Naturschaden.",
                    "esES": "Mientras canalizas Puños de furia, una grulla giratoria golpea a los enemigos a menos de 8 m de tu objetivo e inflige $84462s1 p. de daño de Naturaleza cada 0,5 s.",
                    "ruRU": "Пока вы поддерживаете Неистовые кулаки, вращающийся журавль поражает противников в радиусе 8 м от вашей цели, нанося $84462s1 ед. урона от сил природы каждые 0,5 сек."},
-    S_WINDLORD_SET: {"enUS": "Teaches Strike of the Windlord while Tian Lei and Tian Feng are wielded together.",
-                     "frFR": "Apprend Frappe du Seigneur des vents tant que Tian Lei et Tian Feng sont maniés ensemble.",
-                     "deDE": "Lehrt Schlag des Windfürsten, solange Tian Lei und Tian Feng gemeinsam geführt werden.",
-                     "esES": "Enseña Golpe del Señor del Viento mientras se empuñan juntos Tian Lei y Tian Feng.",
-                     "ruRU": "Обучает Удару повелителя ветров, пока Тянь Лэй и Тянь Фэн используются вместе."},
-    S_WINDLORD: {"enUS": "Strike with both fists at your target and the enemies in front of you within 9 yards, each fist dealing $s1% weapon damage.",
-                 "frFR": "Frappe avec les deux poings votre cible et les ennemis devant vous à moins de 9 mètres, chaque poing infligeant $s1% des dégâts de l’arme.",
-                 "deDE": "Schlagt mit beiden Fäusten Euer Ziel und die Gegner vor Euch im Umkreis von 9 Metern; jede Faust verursacht $s1% Waffenschaden.",
-                 "esES": "Golpea con ambos puños a tu objetivo y a los enemigos delante de ti a menos de 9 m; cada puño inflige un $s1% del daño del arma.",
-                 "ruRU": "Наносит удар обоими кулаками по цели и противникам перед вами в радиусе 9 м; каждый кулак наносит $s1% урона от оружия."},
+    S_WINDBLADES: {"enUS": "Your Spinning Crane Kick hurls blades of wind: each enemy it strikes takes $84464s1 additional Nature damage plus 6% of your attack power.",
+                   "frFR": "Votre Coup tournoyant de la grue projette des lames de vent : chaque ennemi touché subit $84464s1 points de dégâts de Nature supplémentaires plus 6% de votre puissance d’attaque.",
+                   "deDE": "Euer Wirbelnder Kranichtritt schleudert Windklingen: Jeder getroffene Gegner erleidet zusätzlich $84464s1 Naturschaden plus 6% Eurer Angriffskraft.",
+                   "esES": "Tu Patada giratoria de la grulla lanza cuchillas de viento: cada enemigo alcanzado sufre $84464s1 p. de daño de Naturaleza adicional más un 6% de tu poder de ataque.",
+                   "ruRU": "Ваш «Удар журавля» выпускает лезвия ветра: каждый пораженный противник получает дополнительно $84464s1 ед. урона от сил природы плюс 6% силы атаки."},
+    S_STORM: {"enUS": "Each Tiger Palm that hits charges Tian Lei with an inner storm, up to 5 charges. At 5 charges, your next Blackout Kick calls lightning down on your target, dealing $84925s1 Nature damage plus 40% of your attack power to it and to all enemies within 8 yards.",
+              "frFR": "Chaque Paume du tigre qui touche charge Tian Lei d’un orage intérieur, jusqu’à 5 charges. À 5 charges, votre prochaine Frappe du voile noir fait tomber la foudre sur votre cible et inflige $84925s1 points de dégâts de Nature plus 40% de votre puissance d’attaque à celle-ci et à tous les ennemis à moins de 8 mètres.",
+              "deDE": "Jede treffende Tigerklaue lädt Tian Lei mit einem inneren Sturm auf, bis zu 5 Aufladungen. Bei 5 Aufladungen ruft Euer nächster Blackouttritt einen Blitz auf Euer Ziel herab, der ihm und allen Gegnern im Umkreis von 8 Metern $84925s1 Naturschaden plus 40% Eurer Angriffskraft zufügt.",
+              "esES": "Cada Palma del tigre que impacta carga a Tian Lei con una tormenta interior, hasta 5 cargas. Con 5 cargas, tu siguiente Patada oscura hace caer un rayo sobre tu objetivo que inflige $84925s1 p. de daño de Naturaleza más un 40% de tu poder de ataque a él y a todos los enemigos a menos de 8 m.",
+              "ruRU": "Каждая попавшая «Лапа тигра» заряжает Тянь Лэй внутренней бурей, до 5 зарядов. При 5 зарядах ваш следующий «Удар затмения» обрушивает на цель молнию, которая наносит ей и всем противникам в радиусе 8 м $84925s1 ед. урона от сил природы плюс 40% силы атаки."},
 }
 A = {   # les infobulles d'aura
     S_CLOUD: {"enUS": "Condensed mist, ready to heal.", "frFR": "Brume condensée, prête à soigner.", "deDE": "Verdichteter Nebel, bereit zu heilen.",
               "esES": "Bruma condensada, lista para sanar.", "ruRU": "Сгущенный туман, готовый исцелять."},
     S_KEG_MISS: D[S_KEG_MISS],
+    S_STORM_CHARGE: {"enUS": "Inner storm: at 5 charges, your next Blackout Kick calls down lightning.",
+                     "frFR": "Orage intérieur : à 5 charges, votre prochaine Frappe du voile noir fait tomber la foudre.",
+                     "deDE": "Innerer Sturm: Bei 5 Aufladungen ruft Euer nächster Blackouttritt einen Blitz herab.",
+                     "esES": "Tormenta interior: con 5 cargas, tu siguiente Patada oscura hace caer un rayo.",
+                     "ruRU": "Внутренняя буря: при 5 зарядах следующий «Удар затмения» обрушивает молнию."},
     S_THUNDER_BUFF: {"enUS": "Your next attacks deal additional Nature damage.", "frFR": "Vos prochaines attaques infligent des dégâts de Nature supplémentaires.",
                      "deDE": "Eure nächsten Angriffe verursachen zusätzlichen Naturschaden.", "esES": "Tus próximos ataques infligen daño de Naturaleza adicional.",
                      "ruRU": "Следующие атаки наносят дополнительный урон от сил природы."},
@@ -325,15 +346,24 @@ def spells():
     scripts.append([S_CLOUD, "spell_yuwu_nuage"])                 # son départ emporte les nuages du sol
     r = add(blank_spell(S_GIFT_USE, N["gift"]))
     r[FIELD["RangeIndex"]] = 5                             # 40 m
+    r[FIELD["CastingTimeIndex"]] = 5                       # 2 s, comme le Don de Sheilun (SpellMisc 205406)
+    r[FIELD["InterruptFlags"]] = 0x0F                      # le mouvement, le recul et les interruptions l'arrêtent
     r[FIELD["RecoveryTime"]] = 30000
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_HealingWaveLesser")
     r[FIELD["SchoolMask"]] = 8
     r[FIELD["DmgClass"]] = 1
-    r[FIELD["SpellVisual1"]] = template_visual(48378)      # Toucher guérisseur
+    r[FIELD["SpellVisual1"]] = VIS_DON                     # le bâton brandi (BattleRoar), l'impact du Toucher guérisseur
     effect(r, 1, Effect=10, TargetA=21, BasePoints=1799)
     set_text(r, "Description", D[S_GIFT_USE])
     bonus.append([S_GIFT_USE, 0.2, 0, 0, 0, "Yu Wu - Don de Yu Wu - 1 800 par nuage + 20 % de la puissance des soins (cahier)"])
     scripts.append([S_GIFT_USE, "spell_yuwu_don"])
+    r = add(blank_spell(S_CLOUD_MISSILE, N["cloud"]))      # le projectile d'un nuage aspiré : lancé par le nuage sur le Moine
+    r[FIELD["RangeIndex"]] = 13                            # sans limite
+    r[FIELD["Speed"]] = NUAGE_VITESSE
+    r[FIELD["SchoolMask"]] = 8
+    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_Rejuvenation")
+    r[FIELD["SpellVisual1"]] = VIS_NUAGE
+    effect(r, 1, Effect=3, TargetA=25, BasePoints=0)
     r = add(blank_spell(S_MISTS, N["mists"]))
     r[FIELD["Attributes"]] = 0x40 | 0x80
     r[FIELD["DurationIndex"]] = 21
@@ -361,7 +391,7 @@ def spells():
     r[FIELD["SchoolMask"]] = 8
     r[FIELD["DmgClass"]] = 1
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Holy_Heal02")
-    r[FIELD["SpellVisual1"]] = template_visual(48443)      # Récupération
+    r[FIELD["SpellVisual1"]] = VIS_MURMURES                # l'impact de la Récupération
     effect(r, 1, Effect=10, TargetA=21, BasePoints=0)
     bonus.append([S_WHISPERS_HEAL, 0, 0, 0, 0, "Yu Wu - Murmures de Shaohao - rebond : le montant du soin rebondi (script)"])
 
@@ -374,7 +404,7 @@ def spells():
     r[FIELD["DmgClass"]] = 1
     r[FIELD["DurationIndex"]] = 27                         # 3 s, la durée du débuff des ennemis
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\INV_Misc_Ale_01")
-    r[FIELD["SpellVisual1"]] = template_visual(42926)      # Choc de flammes (explosion au sol)
+    r[FIELD["SpellVisual1"]] = VIS_FUT                     # l'explosion au sol du Choc de flammes
     effect(r, 1, Effect=2, TargetA=87, TargetB=16, Radius=14, BasePoints=2999)
     effect(r, 2, Effect=6, Aura=4, TargetA=87, TargetB=16, Radius=14, BasePoints=0)
     effect(r, 3, Effect=63, TargetA=87, TargetB=16, Radius=14, BasePoints=5999)       # forte menace
@@ -422,7 +452,7 @@ def spells():
     r[FIELD["SchoolMask"]] = 8
     r[FIELD["DmgClass"]] = 1
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_LightningOverload")
-    r[FIELD["SpellVisual1"]] = template_visual(49238)      # Éclair
+    r[FIELD["SpellVisual1"]] = VIS_TONNERRE                # l'impact de l'Éclair, sans son incantation (qui rangeait les poings)
     effect(r, 1, Effect=2, TargetA=6, BasePoints=449)
     bonus.append([S_THUNDER_HIT, 0, 0, 0.1, 0, "Tian Lei - Poing de tonnerre - 450 + 10 % PA (cahier)"])
 
@@ -442,40 +472,123 @@ def spells():
     r[FIELD["SchoolMask"]] = 8
     r[FIELD["DmgClass"]] = 1
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Ability_Druid_GaleWinds")
-    r[FIELD["SpellVisual1"]] = template_visual(33786)      # Cyclone
+    r[FIELD["SpellVisual1"]] = VIS_GRUE                    # le cyclone sur chaque ennemi touché
     effect(r, 1, Effect=2, TargetA=53, TargetB=16, Radius=14, BasePoints=599)          # le Moine la lance sur sa cible : 8 m autour
     bonus.append([S_CRANE_PULSE, 0, 0, 0, 0, "Tian Feng - Vents croisés - 600 fixes toutes les 0,5 s (cahier)"])
 
-    # --- l'ensemble : Frappe du Seigneur des vents
-    r = add(blank_spell(S_WINDLORD_SET, N["windlord"]))
+    # --- Tian Feng : Lames de vent (passif de l'arme, choisi par Maitre le 25/10/2026 10:16 UTC)
+    # 200 + 6 % PA par ennemi et par tic du Coup tournoyant de la grue (un tic toutes les 0,75 s) ; à 4 000 PA, 440 par tic,
+    # du même ordre que les 600 fixes de Vents croisés toutes les 0,5 s
+    r = add(blank_spell(S_WINDBLADES, N["windblades"]))
     r[FIELD["Attributes"]] = 0x40 | 0x80
     r[FIELD["DurationIndex"]] = 21
-    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Ability_Warrior_Bladestorm")
+    r[FIELD["ProcFlags"]] = 0x10 | 0x1000 | 0x10000          # les coups du Coup tournoyant (le script ne garde que lui)
+    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Ability_Druid_GaleWinds")
     effect(r, 1, Effect=6, Aura=4, TargetA=1, BasePoints=0)
-    set_text(r, "Description", D[S_WINDLORD_SET])
-    scripts.append([S_WINDLORD_SET, "spell_poings_des_cieux_ensemble"])
-    for sid, off in ((S_WINDLORD, False), (S_WINDLORD_OFF, True)):
-        r = add(blank_spell(sid, N["windlord"]))
-        r[FIELD["RecoveryTime"]] = 0 if off else 40000
-        r[FIELD["StartRecoveryCategory"]] = 0 if off else 133
-        r[FIELD["StartRecoveryTime"]] = 0 if off else 1000
-        r[FIELD["RangeIndex"]] = 1
-        r[FIELD["DmgClass"]] = 2
-        r[FIELD["PreventionType"]] = 2
-        r[FIELD["SchoolMask"]] = 1
-        r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Ability_Warrior_Bladestorm")
-        r[FIELD["SpellVisual1"]] = template_visual(1680)   # Tourbillon
-        if off:
-            r[FIELD["AttributesEx3"]] = 0x01000000         # SPELL_ATTR3_REQ_OFFHAND : l'arme de la main gauche
-            r[FIELD["AttributesEx"]] = no_log & 0
-        effect(r, 1, Effect=31, TargetA=104, Radius=40, BasePoints=299)                # 300 % des dégâts de l'arme, cône de 9 m
-        if not off:
-            effect(r, 2, Effect=64, TargetA=1, BasePoints=0, Trigger=S_WINDLORD_OFF)
-            set_text(r, "Description", D[S_WINDLORD])
+    set_text(r, "Description", D[S_WINDBLADES])
+    procs.append([S_WINDBLADES, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 100, 0, 0])   # dégâts, au toucher ; les coups déclenchés comptent
+    scripts.append([S_WINDBLADES, "spell_tian_feng_lames_de_vent"])
+    r = add(blank_spell(S_WINDBLADES_HIT, N["windblades"]))
+    r[FIELD["RangeIndex"]] = 4                             # 30 m
+    r[FIELD["Speed"]] = 30.0
+    r[FIELD["SchoolMask"]] = 8
+    r[FIELD["DmgClass"]] = 1
+    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Ability_Druid_GaleWinds")
+    r[FIELD["SpellVisual1"]] = VIS_LAMES                   # la lame de vent (wind_chakram_missile, retail)
+    effect(r, 1, Effect=2, TargetA=6, BasePoints=199)
+    bonus.append([S_WINDBLADES_HIT, 0, 0, 0.06, 0, "Tian Feng - Lames de vent - 200 + 6 % PA par ennemi et par tic (Maitre, 25/10)"])
+
+    # --- Tian Lei : Orage intérieur (passif de l'arme, choisi par Maitre le 25/10/2026 10:17 UTC)
+    r = add(blank_spell(S_STORM, N["storm"]))
+    r[FIELD["Attributes"]] = 0x40 | 0x80
+    r[FIELD["DurationIndex"]] = 21
+    r[FIELD["ProcFlags"]] = 0x10 | 0x1000 | 0x10000          # la Paume du tigre et la Frappe du voile noir (le script les trie)
+    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_Lightning")
+    effect(r, 1, Effect=6, Aura=4, TargetA=1, BasePoints=0)
+    set_text(r, "Description", D[S_STORM])
+    procs.append([S_STORM, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 100, 0, 0])
+    scripts.append([S_STORM, "spell_tian_lei_orage_interieur"])
+    r = add(blank_spell(S_STORM_CHARGE, N["storm"]))       # les charges, visibles dans les améliorations
+    r[FIELD["DurationIndex"]] = 9                          # 30 s
+    r[FIELD["StackAmount"]] = 5
+    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_LightningOverload")
+    r[FIELD["SchoolMask"]] = 8
+    effect(r, 1, Effect=6, Aura=4, TargetA=1, BasePoints=0)
+    set_text(r, "ToolTip", A[S_STORM_CHARGE])
+    r = add(blank_spell(S_STORM_STRIKE, N["storm"]))       # la foudre, sur la cible et à 8 m autour
+    r[FIELD["RangeIndex"]] = 5
+    r[FIELD["SchoolMask"]] = 8
+    r[FIELD["DmgClass"]] = 1
+    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_CallStorm")
+    r[FIELD["SpellVisual1"]] = VIS_ORAGE                   # l'éclair tombé du ciel (Appel de la foudre)
+    effect(r, 1, Effect=2, TargetA=53, TargetB=16, Radius=14, BasePoints=1199)
+    bonus.append([S_STORM_STRIKE, 0, 0, 0.4, 0, "Tian Lei - Orage intérieur - 1 200 + 40 % PA par ennemi à 8 m (Maitre, 25/10)"])
     return rows, procs, bonus, scripts
 
 
 _TEMPLATES = {}
+_CLIENT_DBC = {}
+
+
+def client_rows(name):
+    """{id: [mots]} d'une DBC telle que le client la lit (son patch-Z), mots bruts (entiers, flottants et textes non convertis)"""
+    if name not in _CLIENT_DBC:
+        sys.path.insert(0, r"E:\WoW-mods\installer")
+        import core
+        game = core.Client(CLIENT)
+        game = game.in_language("enUS") if "enus" in game.languages else game
+        f = "DBFilesClient\\" + name
+        raw = game.open(game.winner(f)).read(f)
+        n, fields, size, _ = struct.unpack("<4I", raw[4:20])
+        _CLIENT_DBC[name] = {struct.unpack_from("<I", raw, 20 + i * size)[0]: list(struct.unpack_from("<%di" % fields, raw, 20 + i * size))
+                             for i in range(n)}
+    return _CLIENT_DBC[name]
+
+
+def word(v):
+    return struct.unpack("<i", struct.pack("<f", v))[0]
+
+
+def visuals():
+    """(SpellVisual, SpellVisualKit, SpellVisualEffectName) de la partie"""
+    SV, KIT = client_rows("SpellVisual.dbc"), client_rows("SpellVisualKit.dbc")
+
+    def sans_animation(vid, new):
+        """une copie du visuel, sans ses kits d'avant-incantation et d'incantation (leurs animations rangent les armes)"""
+        row = list(SV[vid])
+        row[0], row[1], row[2] = new, 0, 0
+        return row
+
+    def missile(new, effect):
+        row = list(SV[67])                                  # la Boule de feu : un projectile, ses réglages de vol
+        row[0] = new
+        row[1] = row[2] = row[3] = 0                        # ni avant-incantation, ni incantation, ni impact
+        row[8] = effect
+        row[11] = 0                                         # pas le son de la Boule de feu
+        return row
+
+    kits = []
+    for new, src in ((KIT_DON_PRE, 100), (KIT_DON_CAST, 183)):          # ceux du Toucher guérisseur, l'animation remplacée
+        row = list(KIT[src])
+        row[0], row[2] = new, ANIM_BATTLEROAR
+        kits.append(row)
+    row = list(KIT[20068])                                  # le cyclone, sans son animation d'étourdi
+    row[0], row[2] = KIT_GRUE, -1
+    kits.append(row)
+
+    don = list(SV[58])
+    don[0], don[1], don[2], don[3] = VIS_DON, KIT_DON_PRE, KIT_DON_CAST, 101
+    tonnerre = sans_animation(173, VIS_TONNERRE)
+    tonnerre[7] = tonnerre[8] = 0                           # l'Éclair a un projectile ; le coup de poing n'en a pas
+    orage = sans_animation(173, VIS_ORAGE)
+    orage[3], orage[7], orage[8] = 123, 0, 0                # kit 123 : l'impact de l'Appel de la foudre, tombé du ciel
+    grue = sans_animation(8206, VIS_GRUE)
+    grue[3], grue[4] = KIT_GRUE, 0
+    rows = [don, missile(VIS_NUAGE, EFF_NUAGE), tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue,
+            sans_animation(10408, VIS_FUT), sans_animation(58, VIS_MURMURES)]
+    names = [[EFF_NUAGE, "monk_soothingmist_missile", "Spells\\ArtifactWeapons\\monk_soothingmist_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)],
+             [EFF_LAMES, "wind_chakram_missile", "Spells\\ArtifactWeapons\\wind_chakram_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)]]
+    return rows, kits, names
 
 
 def template_visual(spell_id):
@@ -558,6 +671,10 @@ def main():
         for f in os.listdir(os.path.join(work, sub)):
             shutil.copyfile(os.path.join(work, sub, f), os.path.join(dst, f))
     shutil.copyfile(os.path.join(work, "export_crane", "spells", "cranewhite.blp"), os.path.join(client, "Creature", "Crane", "cranewhite.blp"))
+    dst = os.path.join(client, "Spells", "ArtifactWeapons")
+    os.makedirs(dst)
+    for f in os.listdir(os.path.join(work, "ported_sheilun")):
+        shutil.copyfile(os.path.join(work, "ported_sheilun", f), os.path.join(dst, f))
 
     # --- les DBC
     spell_rows, procs, bonus, scripts = spells()
@@ -570,26 +687,30 @@ def main():
     displays = [
         [YUWU, "staff_2h_artifactshaohao_d_03.mdx", "", "staff_2h_artifactshaohao_d_03_jade", "", "inv_staff_2h_artifactshaohao_d_03", ""],
         [JINGU, "staff_2h_artifactmonkeyking_d_03.mdx", "", "staff_2h_artifactmonkeyking_d_03red", "", "inv_staff_2h_artifactmonkeyking_d_03", ""],
-        [TIANLEI, "hand_1h_artifactskywall_d_06.mdx", "", "hand_1h_artifactskywall_d_06_jade", "", "inv_hand_1h_artifactskywall_d_06", ""],
-        [TIANFENG, "hand_1h_artifactskywall_d_06_l.mdx", "", "hand_1h_artifactskywall_d_06_white", "", "inv_hand_1h_artifactskywall_d_06dual", ""],
+        # les deux poings échangés (25/10) : la lame des poings droits de 3.3.5 penche vers -y (vers l'extérieur de la main droite),
+        # celle des gauches vers +y ; le modèle retail penche vers +y : c'est un poing gauche pour 3.3.5, et sa copie reflétée un droit
+        [TIANLEI, "hand_1h_artifactskywall_d_06_l.mdx", "", "hand_1h_artifactskywall_d_06_jade", "", "inv_hand_1h_artifactskywall_d_06", ""],
+        [TIANFENG, "hand_1h_artifactskywall_d_06.mdx", "", "hand_1h_artifactskywall_d_06_white", "", "inv_hand_1h_artifactskywall_d_06dual", ""],
     ]
     displays = [d + [0] * 8 + [""] * 8 + [0, 0] for d in displays]
-    names = localized(N["windlord"] | {"enUS": "Fists of the Heavens", "frFR": "Poings des Cieux", "deDE": "Fäuste der Himmel",
-                                       "esES": "Puños de los Cielos", "ruRU": "Кулаки Небес"})
-    itemset = [ITEMSET] + [names.get(s, "") for s in range(16)] + [16712190] + [TIANLEI, TIANFENG] + [0] * 15 \
-        + [S_WINDLORD_SET] + [0] * 7 + [2] + [0] * 7 + [0, 0]
     models = dbclib.Dbc(open(os.path.join(SERVER_DBC, "CreatureModelData.dbc"), "rb").read(),
                         "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", "CreatureModelData")
     by_id = {r[0]: r for r in models.rows}
     model_rows, display_rows = [], []
+    vis_rows, kit_rows, name_rows = visuals()
     for cid, path, copy_of, files, skins, scale in (
             (NPC_YULON, "Creature\\PandarenSerpentGod\\pandarenserpentgod.mdx", 2071, os.path.join(work, "yulon_final", "pandarenserpentgod.m2"),
              ["pandarenserpentgod_green", "pandarenserpentgod_green_glow", ""], 0.4),     # 0,5 puis -20 % (Maitre, 25/10 00:13 UTC)
-            (NPC_CRANE, "Creature\\Crane\\crane.mdx", 373, os.path.join(work, "ported_crane", "crane.m2"), ["cranewhite", "", ""], 1.0)):
+            (NPC_CRANE, "Creature\\Crane\\crane.mdx", 373, os.path.join(work, "ported_crane", "crane.m2"), ["cranewhite", "", ""], 1.0),
+            # le nuage du Don de Sheilun : un modèle de particules seules ; la ligne de modèle copiée est celle d'un nuage d'orage
+            (NPC_CLOUD, "Spells\\ArtifactWeapons\\7fx_monk_mistsofsheilun_statebase.mdx", 2696,
+             os.path.join(work, "ported_sheilun", "7fx_monk_mistsofsheilun_statebase.m2"), ["", "", ""], 1.0)):
         row = list(by_id[copy_of])
         box = model_box(files)
         row[0], row[2] = cid, path
         row[5] = row[6] = row[13] = 0
+        if not any(box):                                    # un modèle sans sommets : une petite boîte au sol
+            box = (-0.5, -0.5, 0.0, 0.5, 0.5, 0.6)
         row[14] = max(box[3] - box[0], box[4] - box[1]) / 2
         row[15] = box[5] - box[2]
         row[17:23] = list(box)
@@ -605,9 +726,11 @@ def main():
         entry("Spell.dbc", SPELL_LAYOUT, spell_rows, [[136, 151], [153, 168], [170, 185], [187, 202]], SPELL_BLOCKS),
         entry("Item.dbc", "i" * 8, items, [], [[YUWU, TIANFENG], [BOOK[YUWU], BOOK[TIANFENG]]]),
         entry("ItemDisplayInfo.dbc", "i" + "s" * 6 + "i" * 8 + "s" * 8 + "ii", displays, [[1, 6], [15, 22]], [[YUWU, TIANFENG]]),
-        entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [itemset], [[1, 16]], [[ITEMSET, ITEMSET]]),
-        entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CRANE]]),
-        entry("CreatureDisplayInfo.dbc", "iiii" + "f" + "i" + "ssss" + "iiiiii", display_rows, [6, 7, 8, 9], [[NPC_YULON, NPC_CRANE]]),
+        entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
+        entry("CreatureDisplayInfo.dbc", "iiii" + "f" + "i" + "ssss" + "iiiiii", display_rows, [6, 7, 8, 9], [[NPC_YULON, NPC_CLOUD]]),
+        entry("SpellVisual.dbc", "i" * 32, vis_rows, [], [VISUAL_IDS]),
+        entry("SpellVisualKit.dbc", "i" * 38, kit_rows, [], [VISUAL_IDS]),
+        entry("SpellVisualEffectName.dbc", "iss" + "iiii", name_rows, [1, 2], [VISUAL_IDS]),
     ]
 
     # --- le SQL : spell_dbc (les mêmes lignes que Spell.dbc), spell_proc, spell_bonus_data, spell_script_names
@@ -628,14 +751,14 @@ def main():
     stats = {YUWU: 84026, JINGU: 84015, TIANLEI: 84027, TIANFENG: 84027}
     dmg = {YUWU: (974, 1274, 3600), JINGU: (1163, 1899, 3600), TIANLEI: (623, 1076, 2600), TIANFENG: (623, 1076, 2600)}
     item_spells = {YUWU: [(S_GIFT, 1), (S_GIFT_USE, 0), (S_MISTS, 1), (S_WHISPERS, 1)], JINGU: [(S_KEG, 0), (S_FACEPALM, 1), (S_FORTIF, 1)],
-                   TIANLEI: [(S_THUNDER, 1)], TIANFENG: [(S_CROSSWINDS, 1)]}
+                   TIANLEI: [(S_THUNDER, 1), (S_STORM, 1)], TIANFENG: [(S_CROSSWINDS, 1), (S_WINDBLADES, 1)]}
     for iid in (YUWU, JINGU, TIANLEI, TIANFENG):
         row = copy_row(T, "item_template", "entry", stats[iid])
         row.update({"entry": iid, "name": ITEMS[iid]["name"]["enUS"], "displayid": iid, "AllowableClass": MONK_MASK,
                     "subclass": 10 if iid in (YUWU, JINGU) else 13, "InventoryType": {TIANLEI: 21, TIANFENG: 22}.get(iid, 17),
                     "Material": 2 if iid in (YUWU, JINGU) else 1, "sheath": 2 if iid in (YUWU, JINGU) else 7,
                     "dmg_min1": dmg[iid][0], "dmg_max1": dmg[iid][1], "delay": dmg[iid][2], "description": ITEMS[iid]["desc"]["enUS"],
-                    "itemset": ITEMSET if iid in (TIANLEI, TIANFENG) else 0})
+                    "itemset": 0})
         for k in range(1, 6):
             row["spellid_%d" % k], row["spelltrigger_%d" % k] = 0, 0
             row["spellcooldown_%d" % k] = row["spellcategorycooldown_%d" % k] = -1
@@ -656,13 +779,9 @@ def main():
     out_sql += ["DELETE FROM `item_template_locale` WHERE ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d;" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])]
     out_sql += insert("item_template_locale", T["item_template_locale"]["cols"], loc) + [""]
 
-    # --- les noms des pièces de l'ensemble (sans eux, le cœur les prend dans item_template et le signale : Errors.log)
+    # --- plus d'ensemble (25/10) : ses noms de pièces s'en vont
     out_sql += ["DELETE FROM `item_set_names` WHERE entry BETWEEN %d AND %d;" % (TIANLEI, TIANFENG)]
-    out_sql += insert("item_set_names", ["entry", "name", "InventoryType", "VerifiedBuild"],
-                      [[i, ITEMS[i]["name"]["enUS"], {TIANLEI: 21, TIANFENG: 22}[i], 0] for i in (TIANLEI, TIANFENG)]) + [""]
-    out_sql += ["DELETE FROM `item_set_names_locale` WHERE ID BETWEEN %d AND %d;" % (TIANLEI, TIANFENG)]
-    out_sql += insert("item_set_names_locale", ["ID", "locale", "Name", "VerifiedBuild"],
-                      [[i, lang, ITEMS[i]["name"][lang], 0] for i in (TIANLEI, TIANFENG) for lang in LOCALES]) + [""]
+    out_sql += ["DELETE FROM `item_set_names_locale` WHERE ID BETWEEN %d AND %d;" % (TIANLEI, TIANFENG), ""]
 
     # --- les PNJ des quêtes, Yu'lon et la grue
     ct = T["creature_template"]["cols"]
@@ -686,15 +805,15 @@ def main():
         if cid == NPC_CLOUD:
             row.update({"faction": 35, "unit_flags": 0x2000000 | 0x2 | 0x100})   # ni ciblable, ni attaquable, amical
         rows.append([row[c] for c in ct])
-        models_sql.append([cid, 0, CLOUD_DISPLAY if cid == NPC_CLOUD else cid, 0.6 if cid == NPC_CLOUD else 1, 1, 0])
+        models_sql.append([cid, 0, cid, 1, 1, 0])
         locs += [[cid, lang, name[lang], "", 0] for lang in LOCALES]
     ids = "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, NPC_YULON, NPC_CLOUD)
     out_sql += ["DELETE FROM `creature_template` WHERE %s;" % ids] + insert("creature_template", ct, rows) + [""]
     out_sql += ["DELETE FROM `creature_template_model` WHERE %s;" % ids.replace("entry", "CreatureID")]
     out_sql += insert("creature_template_model", T["creature_template_model"]["cols"], models_sql) + [""]
-    out_sql += ["DELETE FROM `creature_model_info` WHERE DisplayID BETWEEN %d AND %d;" % (NPC_YULON, NPC_CRANE)]
+    out_sql += ["DELETE FROM `creature_model_info` WHERE DisplayID BETWEEN %d AND %d;" % (NPC_YULON, NPC_CLOUD)]
     out_sql += insert("creature_model_info", ["DisplayID", "BoundingRadius", "CombatReach", "Gender", "DisplayID_Other_Gender"],
-                      [[NPC_YULON, 1.0, 1.5, 2, 0], [NPC_CRANE, 0.5, 1.0, 2, 0]]) + [""]
+                      [[NPC_YULON, 1.0, 1.5, 2, 0], [NPC_CRANE, 0.5, 1.0, 2, 0], [NPC_CLOUD, 0.5, 1.0, 2, 0]]) + [""]
     out_sql += ["DELETE FROM `creature_template_locale` WHERE %s;" % ids]
     out_sql += insert("creature_template_locale", T["creature_template_locale"]["cols"], locs) + [""]
     # tout spawn de ces quatre PNJ s'en va d'abord (un posé à la main sur un royaume, une installation d'avant) : un PNJ par arme
@@ -757,7 +876,7 @@ def main():
         {"table": "item_set_names", "where": "entry BETWEEN %d AND %d" % (TIANLEI, TIANFENG)},
         {"table": "item_set_names_locale", "where": "ID BETWEEN %d AND %d" % (TIANLEI, TIANFENG)},
         {"table": "creature_template", "where": ids}, {"table": "creature_template_model", "where": ids.replace("entry", "CreatureID")},
-        {"table": "creature_model_info", "where": "DisplayID BETWEEN %d AND %d" % (NPC_YULON, NPC_CRANE)},
+        {"table": "creature_model_info", "where": "DisplayID BETWEEN %d AND %d" % (NPC_YULON, NPC_CLOUD)},
         {"table": "creature_template_locale", "where": ids},
         {"table": "creature", "where": "id BETWEEN %d AND %d OR guid BETWEEN %d AND %d" % (QUEST[YUWU], QUEST[TIANFENG], SPAWN_GUID[YUWU], SPAWN_GUID[TIANFENG])},
         {"table": "quest_template", "where": "ID BETWEEN %d AND %d" % (YUWU, TIANFENG)},
