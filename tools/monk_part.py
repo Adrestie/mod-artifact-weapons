@@ -12,8 +12,9 @@ le nuage et le projectile réglés pour 3.3.5 par tools/sheilun_tune.py).
 
 Les visuels de sorts (SpellVisual, SpellVisualKit, SpellVisualEffectName) partent des lignes du CLIENT (son patch-Z) :
 c'est lui qui les joue, et ses kits diffèrent de ceux du serveur. Aucun kit d'avant-incantation ni d'incantation emprunté
-n'est gardé : leurs animations (51 à 54) ont WeaponFlags 4, qui range les armes, et un poing rangé disparaît. Seul le Don
-de Yu Wu en a, avec BattleRoar (55, WeaponFlags 0) : le Moine brandit son bâton.
+n'est gardé : leurs animations (51 à 54) ont WeaponFlags 4, qui range les armes, et un poing rangé disparaît. Seuls deux
+sorts en ont, ceux du Moine de MoP : le Don de Yu Wu (52 puis 54, 724 en Serpent ; ses WeaponFlags relèvent de
+mod-custom-classes) et le Fût de Jin Gu (ANIM_FUT_PRE, ANIM_FUT_CAST).
 
 Écrit data/parts/monk/ : installer.json (les lignes DBC : Spell, Item, ItemDisplayInfo, ItemSet, CreatureDisplayInfo,
 CreatureModelData ; les lignes de base à retirer), data/sql/world/mod-artifact-weapons--monk_world.sql et
@@ -69,10 +70,16 @@ S_STORM, S_STORM_CHARGE, S_STORM_STRIKE = 84923, 84924, 84925  # Orage intérieu
 S_CLOUD_MISSILE = 84963                                         # un nuage aspiré par le Don, en projectile
 # les visuels de la partie (SpellVisual, SpellVisualKit, SpellVisualEffectName : tranche 84, 84035 à 84049)
 VIS_DON, VIS_NUAGE, VIS_TONNERRE, VIS_LAMES, VIS_ORAGE, VIS_GRUE, VIS_FUT, VIS_MURMURES = range(84035, 84043)
-KIT_DON_PRE, KIT_DON_CAST, KIT_GRUE = 84035, 84036, 84037
+KIT_DON_PRE, KIT_DON_CAST, KIT_GRUE, KIT_FUT_PRE, KIT_FUT_CAST = 84035, 84036, 84037, 84038, 84039
 EFF_NUAGE, EFF_LAMES = 84035, 84036
 VISUAL_IDS = [84035, 84049]
-ANIM_BATTLEROAR = 55                                            # WeaponFlags 0 : l'arme reste en main
+# Les animations du Moine de MoP (Maitre, 25/10/2026 11:50 UTC) : le Don joue celles de l'Élévation (52 puis 54, que la
+# posture du Serpent de wxl-modern-animations change en 724) ; le Fût, celles de Fracasse-tonneau (108 puis 107), par
+# deux numéros à nous, WeaponFlags 0 (107 et 108 en ont 16, qui cache l'arme), qui retombent sur 108 et 107. Essai :
+# s'ils rangent quand même le bâton, le Fût revient sans animation (les lignes de base ne se touchent pas).
+ANIM_FUT_PRE, ANIM_FUT_CAST = 1840, 1841                        # sous la limite de wxl-modern-animations (2048)
+ANIM_ROWS = [[ANIM_FUT_PRE, "ArtifactKegReady", 0, 256, 3, 108, 108, 0],     # ID, nom, WeaponFlags, BodyFlags, Flags,
+             [ANIM_FUT_CAST, "ArtifactKegThrow", 0, 264, 3, 107, 107, 0]]    # repli, comportement, palier (ceux de 108, 107)
 MOTION_NUAGE = 84035                                            # SpellMissileMotion : le projectile du nuage ondule
 MOTION_SCRIPT = ("local waveHeight = .6\nlocal wavesPerSec = 3\n\n"     # le « Snake » du client (121), plus serré : un vol dure
                  "transRight = waveHeight * sin(time * wavesPerSec * 360) * ( 1 - progress ) * 2")  # 0,2 à 0,6 s
@@ -356,7 +363,7 @@ def spells():
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_HealingWaveLesser")
     r[FIELD["SchoolMask"]] = 8
     r[FIELD["DmgClass"]] = 1
-    r[FIELD["SpellVisual1"]] = VIS_DON                     # le bâton brandi (BattleRoar), l'impact du Toucher guérisseur
+    r[FIELD["SpellVisual1"]] = VIS_DON                     # l'Élévation (52, 54), l'impact du Toucher guérisseur
     effect(r, 1, Effect=10, TargetA=21, BasePoints=1799)
     set_text(r, "Description", D[S_GIFT_USE])
     bonus.append([S_GIFT_USE, 0.2, 0, 0, 0, "Yu Wu - Don de Yu Wu - 1 800 par nuage + 20 % de la puissance des soins (cahier)"])
@@ -574,10 +581,12 @@ def visuals():
         return row
 
     kits = []
-    for new, src in ((KIT_DON_PRE, 100), (KIT_DON_CAST, 183)):          # ceux du Toucher guérisseur, l'animation remplacée
+    for new, src in ((KIT_DON_PRE, 100), (KIT_DON_CAST, 183)):          # ceux du Toucher guérisseur : 52 puis 54
         row = list(KIT[src])
-        row[0], row[2] = new, ANIM_BATTLEROAR
+        row[0] = new
         kits.append(row)
+    for new, anim in ((KIT_FUT_PRE, ANIM_FUT_PRE), (KIT_FUT_CAST, ANIM_FUT_CAST)):   # une animation seule
+        kits.append([new, -1, anim] + [0] * 14 + [-1] * 4 + [0] * 17)
     row = list(KIT[20068])                                  # le cyclone, sans son animation d'étourdi
     row[0], row[2] = KIT_GRUE, -1
     kits.append(row)
@@ -592,8 +601,9 @@ def visuals():
     grue[3], grue[4] = KIT_GRUE, 0
     nuage = missile(VIS_NUAGE, EFF_NUAGE)
     nuage[21] = MOTION_NUAGE                                # l'ondulation, sans changer la durée du vol
-    rows = [don, nuage, tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue,
-            sans_animation(10408, VIS_FUT), sans_animation(58, VIS_MURMURES)]
+    fut = sans_animation(10408, VIS_FUT)
+    fut[1], fut[2] = KIT_FUT_PRE, KIT_FUT_CAST
+    rows = [don, nuage, tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue, fut, sans_animation(58, VIS_MURMURES)]
     names = [[EFF_NUAGE, "monk_soothingmist_missile", "Spells\\ArtifactWeapons\\monk_soothingmist_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)],
              [EFF_LAMES, "wind_chakram_missile", "Spells\\ArtifactWeapons\\wind_chakram_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)]]
     return rows, kits, names
@@ -737,6 +747,7 @@ def main():
         # plus d'ensemble (25/10) : sa ligne reste déclarée, vide, pour qu'une mise à jour l'enlève (l'installeur ne nettoie
         # que les DBC que le nouveau paquet déclare encore)
         entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [], [[1, 16]], [[ITEMSET, ITEMSET]]),
+        entry("AnimationData.dbc", "isiiiiii", ANIM_ROWS, [1], [[ANIM_FUT_PRE, ANIM_FUT_CAST]]),
         entry("SpellMissileMotion.dbc", "issii", [[MOTION_NUAGE, "Yu Wu Cloud", MOTION_SCRIPT, 0, 1]], [1, 2],
               [[MOTION_NUAGE, MOTION_NUAGE]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
