@@ -29,8 +29,8 @@ DELETE FROM `spell_proc` WHERE (ABS(SpellId) BETWEEN 84460 AND 84479 OR ABS(Spel
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES
 (84960, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 25, 0, 0),
 (84964, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 10, 130000, 0),
-(84920, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 100, 20000, 0),
-(84921, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 100, 0, 4),
+(84920, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 100, 20000, 0),
+(84921, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 100, 0, 4),
 (84463, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 100, 0, 0),
 (84923, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 100, 0, 0);
 

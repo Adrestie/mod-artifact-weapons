@@ -435,7 +435,7 @@ def spells():
     set_text(r, "Description", D[S_THUNDER])
     # 3 déclenchements par minute : 3 PPM laissaient 7 déclenchements en 60 s (les techniques du Moine comptent comme des
     # coups) ; une recharge de 20 s les borne à 3 par minute de combat
-    procs.append([S_THUNDER, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 100, 20000, 0])
+    procs.append([S_THUNDER, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 100, 20000, 0])
     r = add(blank_spell(S_THUNDER_BUFF, N["thunder"]))
     r[FIELD["DurationIndex"]] = 9                          # 30 s pour s'en servir
     r[FIELD["ProcFlags"]] = 0x4 | 0x10
@@ -444,7 +444,9 @@ def spells():
     r[FIELD["SchoolMask"]] = 8
     effect(r, 1, Effect=6, Aura=42, TargetA=1, BasePoints=0, Trigger=S_THUNDER_HIT)
     set_text(r, "ToolTip", A[S_THUNDER_BUFF])
-    procs.append([S_THUNDER_BUFF, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 100, 0, 4])
+    # SpellTypeMask 1 (dégâts) : sans lui, l'effet de la Paume du tigre qui rend du chi au Moine, lui-même pour cible,
+    # usait une charge et lui envoyait le coup de tonnerre (essai du 25/10 : 944 sur Testvent)
+    procs.append([S_THUNDER_BUFF, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 100, 0, 4])
     scripts.append([S_THUNDER_BUFF, "spell_tian_lei_charge"])      # le coup qui pose les charges n'en use aucune
     r = add(blank_spell(S_THUNDER_HIT, N["thunder"]))
     r[FIELD["AttributesEx"]] = no_log & 0

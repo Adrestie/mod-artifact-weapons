@@ -808,9 +808,11 @@ class spell_tian_lei_charge : public AuraScript
         pose = GameTime::GetGameTimeMS();
     }
 
-    bool CheckProc(ProcEventInfo& /*eventInfo*/)
+    // et jamais sur le Moine lui-même (un effet d'une technique qui le vise, comme le chi de la Paume du tigre)
+    bool CheckProc(ProcEventInfo& eventInfo)
     {
-        return GameTime::GetGameTimeMS() != pose;
+        Unit* cible = eventInfo.GetProcTarget();
+        return GameTime::GetGameTimeMS() != pose && cible && cible != GetTarget();
     }
 
     void Register() override
