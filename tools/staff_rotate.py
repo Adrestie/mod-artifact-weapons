@@ -1,26 +1,19 @@
-"""Le bâton de Jin Gu (84036) retourné : staff_2h_artifactmonkeyking_d_03 et sa physique tournés de 180° autour de y
-(Maitre, 25/10/2026 10:59 UTC : dégainé, la tête de dragon et sa cloche sont devant, elles doivent être derrière).
-
-ABANDONNÉ (Maitre, 25/10/2026 11:57 UTC) : tourné, le cylindre passait en haut en garde, « doublement à l'envers ». Le modèle
-d'origine met le cylindre en bas en Ready2HL, comme un bâton natif. La partie reprend le bâton et le .phys d'origine ;
-l'outil reste pour mémoire.
+"""Le bâton de Jin Gu (84036) retourné : staff_2h_artifactmonkeyking_d_03 et sa physique tournés de 180° autour de x, l'axe
+du bâton (Maitre, 25/10/2026 12:11 UTC, en Stand de profil : le cylindre est du bon côté, derrière, mais la tête de
+dragon est à l'envers, sa mâchoire en dessous et le fût posé au-dessus ; « la tête de dragon doit être vers le haut »).
 
     python tools/staff_rotate.py <dossier de travail>
 
 Lit ported_orig/ (le bâton porté du retail et le .phys de E:\\atelier\\weapon-physics, jamais modifiés), écrit ported/.
 
-Pourquoi y : comme tout bâton de 3.3.5, le modèle a sa tête en +x (le bout large, ici le dragon) et la prise à l'origine ;
-dégainé, +x vise devant et +z le haut. La chaîne de la cloche (os 1, 3, 4, 5, marqués 0x400) est modelée vers +z, donc
-au-dessus du dragon dans toutes les poses de 3.3.5. Le demi-tour autour de y (x et z changent de signe) met le dragon
-derrière et la chaîne vers le bas, là où elle pend ; autour de z, la cloche resterait au-dessus.
-Mais les bâtons se tiennent en Ready2HL / Attack2HL : au repos, +x (la tête) monte et +z part vers l'arrière et le
-bas ; tourné, le dragon passe en bas au repos et la chaîne, modelée, pointe vers l'avant et le haut (la physique la fait
-pendre quand même). Le choix suit ce que Maitre voit en jeu ; rendus des deux sens à côté d'un bâton natif : voir le
-message du commit.
+Autour de x, les bouts restent à leur place (le cylindre en -x, le dragon en +x, comme un bâton natif) ; y et z changent
+de signe : le dragon se retourne, et la chaîne du fût (os 1, 3, 4, 5, marqués 0x400), modelée vers +z, part vers le bas,
+où elle pend. Deux réflexions (y puis z) : les faces gardent leur sens ; les rotations des os gardent la composante x et
+changent le signe de y et z. Dans le .phys, tous les vecteurs sont dans les axes du modèle et tournent de même :
+positions des corps (BDY4), extrémités des capsules (CAPS), repères des articulations (SHJ2, REV2, WLJ3 : trois axes
+puis une translation) ; les indices d'os ne changent pas.
 
-Deux réflexions (x puis z) : les faces gardent leur sens, les rotations des os gardent la composante y et changent le
-signe de x et z. Dans le .phys, tous les vecteurs sont dans les axes du modèle : positions des corps (BDY4), extrémités
-des capsules (CAPS), repères des articulations (SHJ2, REV2, WLJ3 : trois axes puis une translation).
+Un premier essai (07a70cb, 180° autour de y) avait échangé les bouts : abandonné à 11:57 UTC.
 """
 import os
 import struct
@@ -33,13 +26,13 @@ NAME = "staff_2h_artifactmonkeyking_d_03"
 
 
 def turn(v):
-    return (-v[0], v[1], -v[2])
+    return (v[0], -v[1], -v[2])
 
 
 def turn_box(raw, at):
     lo = struct.unpack_from("<3f", raw, at)
     hi = struct.unpack_from("<3f", raw, at + 12)
-    return raw[:at] + struct.pack("<6f", -hi[0], lo[1], -hi[2], -lo[0], hi[1], -lo[2]) + raw[at + 24:]
+    return raw[:at] + struct.pack("<6f", lo[0], -hi[1], -hi[2], hi[0], -lo[1], -lo[2]) + raw[at + 24:]
 
 
 def turn_track(tr, kind):
@@ -48,7 +41,7 @@ def turn_track(tr, kind):
             if kind == "vec3":
                 seq[i] = turn(v)
             else:                                  # compressé à la 3.3.5 : c >= 0 vaut (c - 32767) / 32767, c < 0 (c + 32768) / 32767
-                seq[i] = (-1 - v[0], v[1], -1 - v[2], v[3])     # l'opposé exact
+                seq[i] = (v[0], -1 - v[1], -1 - v[2], v[3])     # l'opposé exact
 
 
 def rotate_m2(m, skin):
@@ -110,7 +103,7 @@ def main():
     open(os.path.join(dst, NAME + ".m2"), "wb").write(m2.write(m))
     open(os.path.join(dst, NAME + "00.skin"), "wb").write(m2.write_skin(skin))
     open(os.path.join(dst, NAME + ".phys"), "wb").write(rotate_phys(open(os.path.join(src, NAME + ".phys"), "rb").read()))
-    print("écrits :", NAME + ".m2", NAME + "00.skin", NAME + ".phys", "(demi-tour autour de y)")
+    print("écrits :", NAME + ".m2", NAME + "00.skin", NAME + ".phys", "(demi-tour autour de x)")
 
 
 if __name__ == "__main__":
