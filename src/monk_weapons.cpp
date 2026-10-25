@@ -52,6 +52,7 @@
 #include "SpellMgr.h"
 #include "SpellScript.h"
 #include "TemporarySummon.h"
+#include <algorithm>
 #include <mutex>
 
 // doit suivre GridNotifiers.h et CellImpl.h
@@ -130,7 +131,7 @@ static constexpr uint32 GRUE_VIE_MAX     = 10000;  // ms, la durée de vie de la
 static constexpr uint32 PAUME_RECHARGE  = 4000;    // ms entre deux Paumes au visage
 static constexpr int32 PAUME_BREUVAGES  = -1000;   // ms ôtées aux breuvages
 static constexpr uint32 NUAGES_MAX      = 10;      // les cumuls de 84961
-static constexpr uint32 NUAGE_DUREE     = 60000;   // ms, la durée de 84961
+static constexpr uint32 NUAGE_DUREE     = 60000;   // ms, la vie d'un nuage au sol (et la durée de 84961)
 static constexpr float NUAGE_ECART      = 2.5f;    // le nuage se pose à cette distance de l'allié soigné
 static constexpr float NUAGE_VITESSE    = 20.0f;   // m/s, le projectile 84963 (la vitesse de son Spell.dbc, tools/monk_part.py)
 static constexpr uint32 NUAGE_FONDU     = 200;     // ms : le nuage devient invisible quand son projectile part
@@ -212,7 +213,7 @@ namespace
 /*
  * spell_yuwu_don — sort 84962 (utilisation de Yu Wu)
  * Refusé sans nuage ; le soin de la base (1 800 + 20 % de la puissance des soins, spell_bonus_data) est
- * multiplié par le nombre de nuages, qui sont alors consommés.
+ * multiplié par le nombre de nuages réellement au sol au début de l'incantation, qui sont alors consommés.
  */
 class spell_yuwu_don : public SpellScript
 {
@@ -232,7 +233,9 @@ class spell_yuwu_don : public SpellScript
         {
             lances = true;
             uint32 const incantation = GetSpellInfo()->CalcCastTime(moine);
-            for (Creature* nuage : PrendsNuages(moine))
+            std::vector<Creature*> const presents = PrendsNuages(moine);
+            nuages = uint8(std::min<size_t>(presents.size(), NUAGES_MAX));
+            for (Creature* nuage : presents)
             {
                 uint32 const vol = uint32(1000.0f * nuage->GetDistance(moine) / NUAGE_VITESSE);
                 nuage->AI()->SetGUID(moine->GetGUID());
@@ -244,9 +247,6 @@ class spell_yuwu_don : public SpellScript
 
     void HandleHeal(SpellEffIndex /*effIndex*/)
     {
-        Unit* moine = GetCaster();
-        Aura* aura = moine ? moine->GetAura(SPELL_YUWU_NUAGE) : nullptr;
-        nuages = aura ? aura->GetStackAmount() : 0;
         SetHitHeal(GetHitHeal() * nuages);
     }
 
@@ -270,8 +270,8 @@ class spell_yuwu_don : public SpellScript
 /*
  * spell_yuwu_don_nuage — sort 84960 (passif de Yu Wu)
  * Après chaque Nuage de brume gagné (la base lance 84961), un nuage (84207) se pose au sol près de l'allié soigné,
- * vu du seul Moine (SummonCreature, visibleBySummonerOnly). Il dure ce que dure un cumul ; au-delà de 10, le plus
- * ancien s'en va.
+ * vu du seul Moine (SummonCreature, visibleBySummonerOnly). Un cumul par nuage : le nuage vit NUAGE_DUREE et
+ * emporte son cumul en partant (npc_yuwu_nuage) ; au-delà de 10, le plus ancien s'en va et le nouveau prend son cumul.
  */
 class spell_yuwu_don_nuage : public AuraScript
 {
@@ -285,7 +285,7 @@ class spell_yuwu_don_nuage : public AuraScript
         Unit* soigne = eventInfo.GetProcTarget();
         WorldObject* pres = soigne && soigne->IsInMap(moine) ? static_cast<WorldObject*>(soigne) : moine;
         Position pos = pres->GetRandomNearPosition(NUAGE_ECART);
-        TempSummon* nuage = moine->SummonCreature(NPC_YUWU_NUAGE, pos, TEMPSUMMON_TIMED_DESPAWN, NUAGE_DUREE, 0, nullptr, true);
+        TempSummon* nuage = moine->SummonCreature(NPC_YUWU_NUAGE, pos, TEMPSUMMON_MANUAL_DESPAWN, 0, 0, nullptr, true);
         if (!nuage)
             return;
         ObjectGuid trop;
@@ -336,6 +336,8 @@ class spell_yuwu_nuage : public AuraScript
  * Immobile et inerte. Le Don lui donne le Moine (SetGUID) puis le délai avant son départ (SetData) : à l'heure, il
  * lance sur le Moine son projectile (84963), s'efface, et disparaît une fois le projectile arrivé (un lanceur qui
  * disparaît trop tôt emporterait son projectile).
+ * Sans Don, il expire au bout de NUAGE_DUREE : il quitte la liste du Moine et lui retire un cumul de 84961 (le dernier
+ * emporte l'aura), pour que les cumuls égalent toujours les nuages au sol (cahier).
  */
 struct npc_yuwu_nuage : public ScriptedAI
 {
@@ -346,15 +348,52 @@ struct npc_yuwu_nuage : public ScriptedAI
 
     ObjectGuid moineGuid;
     int32 depart = -1;                     // ms avant le départ ; -1 : pas encore appelé
+    bool appele = false;                   // le Don l'a pris : il ne compte plus parmi les cumuls
+    uint32 vie = NUAGE_DUREE;
 
     void SetGUID(ObjectGuid const& guid, int32 /*id*/) override { moineGuid = guid; }
-    void SetData(uint32 /*id*/, uint32 delai) override { depart = int32(delai); }
+    void SetData(uint32 /*id*/, uint32 delai) override { depart = int32(delai); appele = true; }
+
+    void Expire()
+    {
+        TempSummon* invocation = me->ToTempSummon();
+        Unit* moine = invocation ? invocation->GetSummonerUnit() : nullptr;
+        bool compte = false;
+        if (invocation)
+        {
+            std::lock_guard<std::mutex> garde(monkWeaponsLock);
+            auto it = nuagesDuMoine.find(invocation->GetSummonerGUID());
+            if (it != nuagesDuMoine.end())
+            {
+                auto pos = std::find(it->second.begin(), it->second.end(), me->GetGUID());
+                if (pos != it->second.end())
+                {
+                    it->second.erase(pos);
+                    compte = true;
+                    if (it->second.empty())
+                        nuagesDuMoine.erase(it);
+                }
+            }
+        }
+        me->DespawnOrUnsummon();
+        if (compte && moine)
+            if (Aura* aura = moine->GetAura(SPELL_YUWU_NUAGE))
+                aura->ModStackAmount(-1);          // à 0, l'aura part (spell_yuwu_nuage n'a plus rien à effacer)
+    }
 
     void AttackStart(Unit* /*who*/) override { }
     void MoveInLineOfSight(Unit* /*who*/) override { }
 
     void UpdateAI(uint32 diff) override
     {
+        if (!appele)
+        {
+            if (vie > diff)
+                vie -= diff;
+            else
+                Expire();
+            return;
+        }
         if (depart < 0)
             return;
         if (depart > int32(diff))
