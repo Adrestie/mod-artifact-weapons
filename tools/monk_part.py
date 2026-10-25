@@ -13,8 +13,8 @@ le nuage et le projectile réglés pour 3.3.5 par tools/sheilun_tune.py).
 Les visuels de sorts (SpellVisual, SpellVisualKit, SpellVisualEffectName) partent des lignes du CLIENT (son patch-Z) :
 c'est lui qui les joue, et ses kits diffèrent de ceux du serveur. Aucun kit d'avant-incantation ni d'incantation emprunté
 n'est gardé : leurs animations (51 à 54) ont WeaponFlags 4, qui range les armes, et un poing rangé disparaît. Seuls deux
-sorts en ont, ceux du Moine de MoP : le Don de Yu Wu (52 puis 54, 724 en Serpent ; ses WeaponFlags relèvent de
-mod-custom-classes) et le Fût de Jin Gu (ANIM_FUT_PRE, ANIM_FUT_CAST).
+sorts en ont : le Don de Yu Wu (ArtMainLoop, 962, ou son repli à nous, ANIM_DON_REPLI) et le Fût de Jin Gu
+(ANIM_FUT_PRE, ANIM_FUT_CAST), par des lignes AnimationData à nous, WeaponFlags 0.
 
 Écrit data/parts/monk/ : installer.json (les lignes DBC : Spell, Item, ItemDisplayInfo, ItemSet, CreatureDisplayInfo,
 CreatureModelData ; les lignes de base à retirer), data/sql/world/mod-artifact-weapons--monk_world.sql et
@@ -78,8 +78,14 @@ VISUAL_IDS = [84035, 84049]
 # deux numéros à nous, WeaponFlags 0 (107 et 108 en ont 16, qui cache l'arme), qui retombent sur 108 et 107. Essai :
 # s'ils rangent quand même le bâton, le Fût revient sans animation (les lignes de base ne se touchent pas).
 ANIM_FUT_PRE, ANIM_FUT_CAST = 1840, 1841                        # sous la limite de wxl-modern-animations (2048)
+# Le Don de Yu Wu joue ArtMainLoop (962, le bâton brandi du retail ; Maitre, 25/10/2026 12:39 UTC) : seul NightElfMale
+# l'a parmi nos modèles de race ; les autres retombent sur 1842, à nous, les bras levés de 54 (SpellCastOmni) mais
+# WeaponFlags 0, pour que le bâton reste en main (option (a) + (c) du coordinateur, 12:47 UTC).
+ANIM_DON, ANIM_DON_REPLI = 962, 1842
 ANIM_ROWS = [[ANIM_FUT_PRE, "ArtifactKegReady", 0, 256, 3, 108, 108, 0],     # ID, nom, WeaponFlags, BodyFlags, Flags,
-             [ANIM_FUT_CAST, "ArtifactKegThrow", 0, 264, 3, 107, 107, 0]]    # repli, comportement, palier (ceux de 108, 107)
+             [ANIM_FUT_CAST, "ArtifactKegThrow", 0, 264, 3, 107, 107, 0],    # repli, comportement, palier (ceux de 108, 107)
+             [ANIM_DON_REPLI, "ArtifactStaffRaise", 0, 264, 3, 54, 54, 0],   # ceux de 54
+             [ANIM_DON, "ArtMainLoop", 0, 264, 3, ANIM_DON_REPLI, ANIM_DON, 0]]
 MOTION_NUAGE = 84035                                            # SpellMissileMotion : le projectile du nuage ondule
 MOTION_SCRIPT = ("local waveHeight = .6\nlocal wavesPerSec = 3\n\n"     # le « Snake » du client (121), plus serré : un vol dure
                  "transRight = waveHeight * sin(time * wavesPerSec * 360) * ( 1 - progress ) * 2")  # 0,2 à 0,6 s
@@ -363,7 +369,7 @@ def spells():
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Nature_HealingWaveLesser")
     r[FIELD["SchoolMask"]] = 8
     r[FIELD["DmgClass"]] = 1
-    r[FIELD["SpellVisual1"]] = VIS_DON                     # l'Élévation (52, 54), l'impact du Toucher guérisseur
+    r[FIELD["SpellVisual1"]] = VIS_DON                     # ArtMainLoop (962), l'impact du Toucher guérisseur
     effect(r, 1, Effect=10, TargetA=21, BasePoints=1799)
     set_text(r, "Description", D[S_GIFT_USE])
     bonus.append([S_GIFT_USE, 0.2, 0, 0, 0, "Yu Wu - Don de Yu Wu - 1 800 par nuage + 20 % de la puissance des soins (cahier)"])
@@ -583,9 +589,9 @@ def visuals():
         return row
 
     kits = []
-    for new, src in ((KIT_DON_PRE, 100), (KIT_DON_CAST, 183)):          # ceux du Toucher guérisseur : 52 puis 54
+    for new, src in ((KIT_DON_PRE, 100), (KIT_DON_CAST, 183)):          # ceux du Toucher guérisseur, avec ArtMainLoop
         row = list(KIT[src])
-        row[0] = new
+        row[0], row[2] = new, ANIM_DON
         kits.append(row)
     for new, anim in ((KIT_FUT_PRE, ANIM_FUT_PRE), (KIT_FUT_CAST, ANIM_FUT_CAST)):   # une animation seule
         kits.append([new, -1, anim] + [0] * 14 + [-1] * 4 + [0] * 17)
@@ -749,7 +755,7 @@ def main():
         # plus d'ensemble (25/10) : sa ligne reste déclarée, vide, pour qu'une mise à jour l'enlève (l'installeur ne nettoie
         # que les DBC que le nouveau paquet déclare encore)
         entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [], [[1, 16]], [[ITEMSET, ITEMSET]]),
-        entry("AnimationData.dbc", "isiiiiii", ANIM_ROWS, [1], [[ANIM_FUT_PRE, ANIM_FUT_CAST]]),
+        entry("AnimationData.dbc", "isiiiiii", ANIM_ROWS, [1], [[ANIM_FUT_PRE, ANIM_DON_REPLI], [ANIM_DON, ANIM_DON]]),
         entry("SpellMissileMotion.dbc", "issii", [[MOTION_NUAGE, "Yu Wu Cloud", MOTION_SCRIPT, 0, 1]], [1, 2],
               [[MOTION_NUAGE, MOTION_NUAGE]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
