@@ -15,7 +15,8 @@
  *   - Brumes de Yu Wu (84964, passif) : un sort de soin instantané qui soigne, 10 % de chances (130 s de
  *     recharge interne, spell_proc) d'invoquer Yu'lon 12 s (84965) : spell_yuwu_brumes ; Yu'lon refait les
  *     sorts de soin du Moine sur les alliés les plus bas en vie, à 75 % : npc_yuwu_yulon, monk_weapons_yulon_copy
- *     et monk_weapons_yulon_soins (les Brumes de surtension, enveloppante et de rénovation y compris ;
+ *     et monk_weapons_yulon_soins (les soins directs, Brume de surtension et Extraction du mal, partent du Moine ;
+ *     les périodiques et canalisés, Brumes de rénovation, enveloppante et apaisante, Sphère zen, de Yu'lon ;
  *     l'Extraction du mal, que le Moine lance sur lui-même, elle la lance sur l'allié).
  *   - Murmures de Shaohao (84966, passif) : la Brume apaisante du Moine et de sa statue rebondit sur 2 alliés
  *     de plus, les plus bas en vie, -33 % par rebond (84967) : monk_weapons_shaohao.
@@ -121,7 +122,6 @@ static constexpr uint32 MONK_BREUVAGES[] = {
 static constexpr float YULON_PORTEE     = 40.0f;   // les alliés que Yu'lon soigne, autour d'elle
 static constexpr int32 YULON_PART       = 75;      // % des soins du Moine que font ses copies (Maitre, 25/10/2026 00:13 UTC)
 static constexpr uint32 YULON_ALLURE    = 250;     // ms entre deux recopies des vitesses du Moine
-static constexpr uint32 YULON_ATTENTE   = 3000;    // ms pendant lesquels le soin périodique d'une copie est attendu
 static constexpr float SHAOHAO_PORTEE   = 40.0f;   // les alliés des rebonds, autour de la cible soignée
 static constexpr uint32 SHAOHAO_REBONDS = 2;
 static constexpr uint32 GRUE_PERIODE    = 500;     // ms, une impulsion de Vents croisés
@@ -144,16 +144,6 @@ namespace
     // sans temps d'incantation), monk_weapons_yulon_soins les ramène à 75 %
     thread_local bool copieDeYulon = false;
 
-    // les soins périodiques que posent les copies de Yu'lon, à ramener à 75 % quand ils arrivent : la Brume de rénovation
-    // est un projectile (vitesse 30), son soin se pose après le retour de CastSpell
-    struct SoinAttendu
-    {
-        ObjectGuid moine;
-        ObjectGuid cible;
-        uint32 sort;
-        Milliseconds jusqua;
-    };
-    std::vector<SoinAttendu> soinsAttendus;
     std::unordered_map<ObjectGuid, ObjectGuid> yulonDuMoine;          // le Moine -> sa Yu'lon
     std::unordered_map<ObjectGuid, ObjectGuid> cibleDeLaGrue;         // le Moine -> la cible de sa prochaine grue
     std::unordered_map<ObjectGuid, std::vector<ObjectGuid>> nuagesDuMoine;   // le Moine -> ses nuages au sol, du plus ancien au plus récent
@@ -562,9 +552,14 @@ static CopieDeYulon SortDeYulon(SpellInfo const* sort)
 }
 
 // Yu'lon refait chaque sort de soin que le Moine lance lui-même (pas un sort déclenché) sur l'allié le plus bas
-// en vie autour d'elle. La copie part du Moine, déclenchée : lancée par Yu'lon, elle perdait les modificateurs de sorts du
-// Moine (un gardien n'en a pas : 68 % au lieu de 75 % sur la Brume de surtension) et l'Extraction du mal, qui se calcule sur
-// l'arme et la puissance d'attaque de son lanceur, ne soignait plus que 9 %. Yu'lon, elle, joue le lancer.
+// en vie autour d'elle.
+// - Un soin direct (Brume de surtension, Extraction du mal) part du Moine, déclenché : lancé par Yu'lon, il perdait les
+//   modificateurs de sorts du Moine (68 % au lieu de 75 %) et l'Extraction du mal, calculée sur l'arme et la puissance
+//   d'attaque de son lanceur, ne soignait plus que 9 %.
+// - Un soin périodique ou canalisé (Brumes de rénovation et enveloppante, Brume apaisante, Sphère zen) part de Yu'lon
+//   (Maitre, 25/10/2026 15:03 UTC : « je n'ai que le mien ») : lancé par le Moine, il rafraîchissait sa propre aura sur
+//   la même cible au lieu d'en poser une seconde, et une canalisation aurait coupé la sienne. monk_weapons_yulon_soins
+//   en refait chaque tic sur les bonus du Moine, à 75 %.
 class monk_weapons_yulon_copy : public PlayerScript
 {
 public:
@@ -590,63 +585,52 @@ public:
             return;
         std::vector<Unit*> allies = AlliesBlesses(moine, yulon, YULON_PORTEE, nullptr);
         Unit* cible = allies.empty() ? moine : allies.front();
-        // son soin périodique : le montant de chaque tic est fixé à la pose ; monk_weapons_yulon_soins le ramène à 75 % quand
-        // il arrive (tout de suite, ou à l'arrivée du projectile)
-        if (copie.periodique)
+        if (copie.periodique && sSpellMgr->GetSpellInfo(copie.periodique))
+            yulon->CastSpell(cible, copie.periodique, TRIGGERED_FULL_MASK);
+        else
         {
-            std::lock_guard<std::mutex> garde(monkWeaponsLock);
-            soinsAttendus.push_back({ moine->GetGUID(), cible->GetGUID(), copie.periodique, GameTime::GetGameTimeMS() + Milliseconds(YULON_ATTENTE) });
+            copieDeYulon = true;
+            moine->CastSpell(cible, copie.lance, TRIGGERED_FULL_MASK);
+            copieDeYulon = false;
         }
-        copieDeYulon = true;
-        moine->CastSpell(cible, copie.lance, TRIGGERED_FULL_MASK);
-        copieDeYulon = false;
         yulon->HandleEmoteCommand(EMOTE_ONESHOT_SPELL_CAST_OMNI);
     }
 };
 
-// les soins d'une copie de Yu'lon : 75 % de ceux du Moine. Les directs pendant la copie ; les périodiques à leur pose,
-// d'après soinsAttendus. Les rebonds de la Brume de rénovation, que son script refait à chaque tic avec le Moine pour
-// lanceur, ne se distinguent plus des siens : ils restent à 100 %.
+// les soins d'une copie de Yu'lon : 75 % de ceux du Moine. Les directs pendant la copie (copieDeYulon) ; ceux que
+// Yu'lon lance elle-même (périodiques, canalisés) sont refaits sur les bonus de soin du Moine : un gardien n'en a pas.
+// Le hook reçoit la cible puis le lanceur pour un tic (SpellAuraEffects.cpp 6655), le lanceur puis la cible pour un
+// soin direct (Unit::HealBySpell, Unit.cpp 8142, appelé sur le lanceur) : Yu'lon est celle des deux qui est Yu'lon.
 class monk_weapons_yulon_soins : public UnitScript
 {
 public:
-    monk_weapons_yulon_soins() : UnitScript("monk_weapons_yulon_soins", true, { UNITHOOK_MODIFY_HEAL_RECEIVED, UNITHOOK_ON_AURA_APPLY }) { }
+    monk_weapons_yulon_soins() : UnitScript("monk_weapons_yulon_soins", true, { UNITHOOK_MODIFY_HEAL_RECEIVED }) { }
 
-    void ModifyHealReceived(Unit* /*cible*/, Unit* /*lanceur*/, uint32& soin, SpellInfo const* /*sort*/) override
+    void ModifyHealReceived(Unit* premier, Unit* second, uint32& soin, SpellInfo const* sort) override
     {
         if (copieDeYulon)
-            soin = CalculatePct(soin, YULON_PART);
-    }
-
-    void OnAuraApply(Unit* cible, Aura* aura) override
-    {
-        if (!cible || !aura)
-            return;
-        Milliseconds const maintenant = GameTime::GetGameTimeMS();
-        bool trouve = false;
         {
-            std::lock_guard<std::mutex> garde(monkWeaponsLock);
-            if (soinsAttendus.empty())
-                return;
-            for (auto it = soinsAttendus.begin(); it != soinsAttendus.end();)
-            {
-                if (it->jusqua < maintenant)
-                    it = soinsAttendus.erase(it);
-                else if (!trouve && it->sort == aura->GetId() && it->moine == aura->GetCasterGUID() && it->cible == cible->GetGUID())
-                {
-                    trouve = true;
-                    it = soinsAttendus.erase(it);
-                }
-                else
-                    ++it;
-            }
-        }
-        if (!trouve)
+            soin = CalculatePct(soin, YULON_PART);
             return;
-        for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-            if (AuraEffect* effet = aura->GetEffect(i))
-                if (effet->GetAuraType() == SPELL_AURA_PERIODIC_HEAL)
-                    effet->ChangeAmount(CalculatePct(effet->GetAmount(), YULON_PART));
+        }
+        if (!sort || !soin || !premier || !second)
+            return;
+        Unit* yulon = premier->GetEntry() == NPC_YUWU_YULON ? premier : (second->GetEntry() == NPC_YUWU_YULON ? second : nullptr);
+        TempSummon* invocation = yulon ? yulon->ToTempSummon() : nullptr;
+        Unit* moine = invocation ? invocation->GetSummonerUnit() : nullptr;
+        if (!moine)
+            return;
+        Unit* soigne = yulon == premier ? second : premier;
+        DamageEffectType type = HEAL;
+        uint8 effet = 0;
+        for (SpellEffectInfo const& e : sort->GetEffects())
+            if (e.ApplyAuraName == SPELL_AURA_PERIODIC_HEAL || e.Effect == SPELL_EFFECT_HEAL)
+            {
+                type = e.ApplyAuraName == SPELL_AURA_PERIODIC_HEAL ? DOT : HEAL;
+                effet = uint8(e.EffectIndex);
+                break;
+            }
+        soin = CalculatePct(moine->SpellHealingBonusDone(soigne, sort, soin, type, effet), YULON_PART);
     }
 };
 
