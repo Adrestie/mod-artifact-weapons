@@ -873,8 +873,6 @@ def main():
         {"table": "spell_bonus_data", "where": span("entry")}, {"table": "spell_script_names", "where": span("ABS(spell_id)")},
         {"table": "item_template", "where": "entry BETWEEN %d AND %d OR entry BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])},
         {"table": "item_template_locale", "where": "ID BETWEEN %d AND %d OR ID BETWEEN %d AND %d" % (YUWU, TIANFENG, BOOK[YUWU], BOOK[TIANFENG])},
-        {"table": "item_set_names", "where": "entry BETWEEN %d AND %d" % (TIANLEI, TIANFENG)},
-        {"table": "item_set_names_locale", "where": "ID BETWEEN %d AND %d" % (TIANLEI, TIANFENG)},
         {"table": "creature_template", "where": ids}, {"table": "creature_template_model", "where": ids.replace("entry", "CreatureID")},
         {"table": "creature_model_info", "where": "DisplayID BETWEEN %d AND %d" % (NPC_YULON, NPC_CLOUD)},
         {"table": "creature_template_locale", "where": ids},
