@@ -5473,6 +5473,25 @@
    ]
   },
   {
+   "file": "ItemSet.dbc",
+   "fields": 53,
+   "text_fields": [
+    [
+     1,
+     16
+    ]
+   ],
+   "client": true,
+   "server": true,
+   "owned_ids": [
+    [
+     84037,
+     84037
+    ]
+   ],
+   "rows": []
+  },
+  {
    "file": "CreatureModelData.dbc",
    "fields": 28,
    "text_fields": [

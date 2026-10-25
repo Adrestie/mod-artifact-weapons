@@ -726,6 +726,9 @@ def main():
         entry("Spell.dbc", SPELL_LAYOUT, spell_rows, [[136, 151], [153, 168], [170, 185], [187, 202]], SPELL_BLOCKS),
         entry("Item.dbc", "i" * 8, items, [], [[YUWU, TIANFENG], [BOOK[YUWU], BOOK[TIANFENG]]]),
         entry("ItemDisplayInfo.dbc", "i" + "s" * 6 + "i" * 8 + "s" * 8 + "ii", displays, [[1, 6], [15, 22]], [[YUWU, TIANFENG]]),
+        # plus d'ensemble (25/10) : sa ligne reste déclarée, vide, pour qu'une mise à jour l'enlève (l'installeur ne nettoie
+        # que les DBC que le nouveau paquet déclare encore)
+        entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [], [[1, 16]], [[ITEMSET, ITEMSET]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
         entry("CreatureDisplayInfo.dbc", "iiii" + "f" + "i" + "ssss" + "iiiiii", display_rows, [6, 7, 8, 9], [[NPC_YULON, NPC_CLOUD]]),
         entry("SpellVisual.dbc", "i" * 32, vis_rows, [], [VISUAL_IDS]),
