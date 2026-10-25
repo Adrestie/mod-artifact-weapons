@@ -19,7 +19,8 @@
  *     les périodiques et canalisés, Brumes de rénovation, enveloppante et apaisante, Sphère zen, de Yu'lon ;
  *     l'Extraction du mal, que le Moine lance sur lui-même, elle la lance sur l'allié).
  *   - Murmures de Shaohao (84966, passif) : la Brume apaisante du Moine et de sa statue rebondit sur 2 alliés
- *     de plus, en chaîne (A -> B -> C), 50 % du maillon précédent, le fil visible (84967) : monk_weapons_shaohao.
+ *     de plus, en chaîne (A -> B -> C), 50 % du maillon précédent (84967), le fil sur l'aura de lien (84969) :
+ *     monk_weapons_shaohao.
  * Jin Gu, bâton du Roi-Singe (84036)
  *   - Fût explosif (84980) : dégâts et menace en base ; les ennemis touchés ratent toutes leurs attaques de
  *     mêlée contre le Moine 3 s : monk_weapons_fut_explosif.
@@ -69,6 +70,7 @@ enum MonkWeaponSpells
     SPELL_YUWU_YULON            = 84965,
     SPELL_YUWU_MURMURES         = 84966,
     SPELL_YUWU_MURMURES_SOIN    = 84967,
+    SPELL_YUWU_MURMURES_LIEN    = 84969,   // l'aura de lien : porte le fil de la Brume apaisante, d'un maillon au suivant
     SPELL_YUWU_YULON_BRUME      = 84968,   // la Brume apaisante de Yu'lon : un soin périodique, pas une canalisation
     // Jin Gu
     SPELL_JINGU_FUT_EXPLOSIF       = 84980,
@@ -687,10 +689,10 @@ public:
         AuraEffect const* murmures = moine ? moine->GetAuraEffect(SPELL_YUWU_MURMURES, EFFECT_0) : nullptr;
         if (!murmures)
             return;
-        // la chaîne (Maitre, 25/10/2026 15:58 UTC) : le Moine -> A -> B -> C, chaque maillon à 50 % du précédent. Chaque
-        // rebond part du maillon précédent, le Moine pour lanceur d'origine (son soin, sa menace) : le client trace le fil
-        // de la Brume apaisante du lanceur à la cible (le kit d'incantation de 84967, tools/monk_part.py), à chaque tic.
-        // Déclenché, il ne coupe rien de ce que le maillon lance lui-même, et aucun champ de canalisation n'est posé sur lui.
+        // la chaîne (Maitre, 25/10/2026 15:58 UTC) : le Moine -> A -> B -> C, chaque maillon à 50 % du précédent. Le soin
+        // (84967) part du Moine ; le fil de la Brume apaisante est le kit d'état de l'aura de lien (84969) que chaque
+        // maillon pose sur le suivant. Déclenchée, elle ne coupe rien de ce que le maillon lance lui-même, et aucun champ
+        // de canalisation n'est posé sur lui.
         int32 montant = int32(soin);
         Unit* maillon = cible;
         std::vector<Unit*> deja = { cible };
@@ -719,7 +721,13 @@ public:
             if (!suivant)
                 break;
             montant = std::max<int32>(1, CalculatePct(montant, 100 + murmures->GetAmount()));
-            maillon->CastCustomSpell(suivant, SPELL_YUWU_MURMURES_SOIN, &montant, nullptr, nullptr, true, nullptr, nullptr, moine->GetGUID());
+            moine->CastCustomSpell(suivant, SPELL_YUWU_MURMURES_SOIN, &montant, nullptr, nullptr, true);
+            // le fil (Maitre, 25/10/2026 17:28 UTC, « Aura de lien ») : le maillon pose lui-même l'aura sur le suivant, pour
+            // que le fil parte de lui, et la rafraîchit à chaque tic au lieu de la reposer (un fil par maillon)
+            if (Aura* lien = suivant->GetAura(SPELL_YUWU_MURMURES_LIEN, maillon->GetGUID()))
+                lien->RefreshDuration();
+            else
+                maillon->CastSpell(suivant, SPELL_YUWU_MURMURES_LIEN, TRIGGERED_FULL_MASK);
             deja.push_back(suivant);
             maillon = suivant;
         }

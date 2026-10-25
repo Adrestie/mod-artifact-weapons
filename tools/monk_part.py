@@ -63,6 +63,7 @@ S_MISTS, S_YULON = 84964, 84965
 S_YULON_MIST = 84968                                            # la Brume apaisante de Yu'lon : un soin périodique, pas une canalisation
 SOOTHING_MIST_TOP = 81780                                       # la Brume apaisante du Moine (mod-custom-classes), son dernier rang
 S_WHISPERS, S_WHISPERS_HEAL = 84966, 84967
+S_WHISPERS_LINK = 84969                                         # l'aura de lien de Murmures : porte le fil, d'un maillon au suivant
 S_KEG, S_KEG_MISS = 84980, 84981
 S_FACEPALM, S_FORTIF = 84982, 84983
 S_THUNDER, S_THUNDER_BUFF, S_THUNDER_HIT = 84920, 84921, 84922
@@ -71,7 +72,8 @@ S_WINDBLADES, S_WINDBLADES_HIT = 84463, 84464                  # Lames de vent (
 S_STORM, S_STORM_CHARGE, S_STORM_STRIKE = 84923, 84924, 84925  # Orage intérieur (Tian Lei)
 S_CLOUD_MISSILE = 84963                                         # un nuage aspiré par le Don, en projectile
 # les visuels de la partie (SpellVisual, SpellVisualKit, SpellVisualEffectName : tranche 84, 84035 à 84049)
-VIS_DON, VIS_NUAGE, VIS_TONNERRE, VIS_LAMES, VIS_ORAGE, VIS_GRUE, VIS_FUT, VIS_MURMURES = range(84035, 84043)
+VIS_DON, VIS_NUAGE, VIS_TONNERRE, VIS_LAMES, VIS_ORAGE, VIS_GRUE, VIS_FUT, VIS_MURMURES, VIS_MURMURES_SOIN = range(84035, 84044)
+CHAINE_MURMURES = 84035                                         # SpellChainEffects : posée puis retirée le 25/10 ; revendiquée sans ligne
 KIT_DON_PRE, KIT_DON_CAST, KIT_GRUE, KIT_FUT_PRE, KIT_FUT_CAST = 84035, 84036, 84037, 84038, 84039
 KIT_MURMURES = 84040                                            # le fil de la Brume apaisante, d'un maillon au suivant
 KIT_BRUME_CANAL = 81139                                         # la canalisation de la Brume apaisante (mod-custom-classes) : ses chaînes
@@ -426,8 +428,21 @@ def spells():
     r[FIELD["SchoolMask"]] = 8
     r[FIELD["DmgClass"]] = 1
     r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Holy_Heal02")
-    r[FIELD["SpellVisual1"]] = VIS_MURMURES                # l'impact de la Récupération
+    r[FIELD["SpellVisual1"]] = VIS_MURMURES_SOIN           # l'impact de la Récupération, sans kit d'incantation
     effect(r, 1, Effect=10, TargetA=21, BasePoints=0)
+    # l'aura de lien (Maitre, 25/10/2026 17:28 UTC, « Aura de lien ») : le maillon A la pose lui-même sur B (lanceur A, le
+    # fil part de A), rafraîchie à chaque tic sans être reposée ; son kit d'état porte le fil de la Brume apaisante. Sans
+    # icône (AttributesEx NO_AURA_ICON), sans effet de jeu (aura 4, dummy), non dissipable (pas de DispelType), 1,5 s :
+    # elle expire une demi-seconde après le dernier tic de la canalisation qui la nourrit
+    r = add(blank_spell(S_WHISPERS_LINK, N["whispers"]))
+    r[FIELD["Attributes"]] = 0x80000000                    # SPELL_ATTR0_CANT_CANCEL : le joueur ne la retire pas
+    r[FIELD["AttributesEx"]] = no_log
+    r[FIELD["DurationIndex"]] = 65                         # 1,5 s
+    r[FIELD["RangeIndex"]] = 5
+    r[FIELD["SchoolMask"]] = 8
+    r[FIELD["SpellIconID"]] = I("Interface\\Icons\\Spell_Holy_Heal02")
+    r[FIELD["SpellVisual1"]] = VIS_MURMURES
+    effect(r, 1, Effect=6, Aura=4, TargetA=21, BasePoints=0)
     bonus.append([S_WHISPERS_HEAL, 0, 0, 0, 0, "Yu Wu - Murmures de Shaohao - rebond : le montant du soin rebondi (script)"])
 
     # --- Jin Gu
@@ -627,16 +642,17 @@ def visuals():
     nuage[21] = MOTION_NUAGE                                # l'ondulation, sans changer la durée du vol
     fut = sans_animation(10408, VIS_FUT)
     fut[1], fut[2] = KIT_FUT_PRE, KIT_FUT_CAST
-    # le rebond de Murmures : lancé par le maillon précédent (src/monk_weapons.cpp), son kit d'incantation est celui de la
-    # canalisation de la Brume apaisante sans son animation : ses procédures 0 (chaînes 81100 à 81102, comme le kit
-    # d'incantation 3169 du Salve de guérison) tracent le fil du lanceur à la cible
+    # le fil de Murmures : la canalisation de la Brume apaisante sans son animation ni son son, ses procédures 0 (chaînes
+    # 81100 à 81102, comme le kit d'incantation 3169 du Salve de guérison) traçant le fil du lanceur à la cible. Il n'est
+    # plus le kit d'incantation du soin, rejoué à chaque tic (les fils s'empilaient), mais le kit d'état de l'aura de
+    # lien (84969) : joué à la pose, arrêté au retrait
     chaine = list(KIT[KIT_BRUME_CANAL])
     chaine[0], chaine[1], chaine[2] = KIT_MURMURES, -1, -1
     chaine[15] = 0                                         # sans le son en boucle de la canalisation (rejoué à chaque tic)
     kits.append(chaine)
     murmures = sans_animation(58, VIS_MURMURES)
-    murmures[2] = KIT_MURMURES
-    rows = [don, nuage, tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue, fut, murmures]
+    murmures[3], murmures[4] = 0, KIT_MURMURES              # pas d'impact ; le fil en kit d'état
+    rows = [don, nuage, tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue, fut, murmures, sans_animation(58, VIS_MURMURES_SOIN)]
     names = [[EFF_NUAGE, "monk_soothingmist_missile", "Spells\\ArtifactWeapons\\monk_soothingmist_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)],
              [EFF_LAMES, "wind_chakram_missile", "Spells\\ArtifactWeapons\\wind_chakram_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)]]
     return rows, kits, names
@@ -781,6 +797,9 @@ def main():
         # que les DBC que le nouveau paquet déclare encore)
         entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [], [[1, 16]], [[ITEMSET, ITEMSET]]),
         entry("AnimationData.dbc", "isiiiiii", ANIM_ROWS, [1], [[ANIM_FUT_PRE, ANIM_DON_REPLI], [ANIM_DON, ANIM_DON]]),
+        # 84035, posée par 01720ca et ed63eae (annulés) : la déclarer sans ligne la fait retirer par la mise à jour
+        {"file": "SpellChainEffects.dbc", "fields": 48, "text_fields": [7], "client": True, "server": False, "rows": [],
+         "owned_ids": [[CHAINE_MURMURES, CHAINE_MURMURES]]},
         entry("SpellMissileMotion.dbc", "issii", [[MOTION_NUAGE, "Yu Wu Cloud", MOTION_SCRIPT, 0, 1]], [1, 2],
               [[MOTION_NUAGE, MOTION_NUAGE]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
