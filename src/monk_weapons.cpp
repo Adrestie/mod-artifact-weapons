@@ -85,11 +85,14 @@ enum MonkWeaponSpells
     SPELL_MONK_ENVELOPING_MIST_HOT = 81808,
     SPELL_MONK_RENEWING_MIST       = 81818,   // 7 rangs ; le soin périodique : 81825 et suivants
     SPELL_MONK_RENEWING_MIST_HOT   = 81825,
-    // l'Extraction du mal soigne le Moine qui la lance : Yu'lon prend sa variante sur un allié (celle du glyphe), par posture
+    // l'Extraction du mal soigne le Moine qui la lance : la copie prend sa variante sur un allié (celle du glyphe), par
+    // posture ; celle du Serpent a 8 rangs (niveaux 24 à 80), sa variante sur un allié 6 (niveaux 40 à 80) : les rangs 3 à
+    // 8 y correspondent, niveau pour niveau
     SPELL_MONK_EXPEL_HARM          = 81148,
     SPELL_MONK_EXPEL_HARM_SERPENT  = 81925,
     SPELL_MONK_EXPEL_HARM_ALLY     = 82378,
     SPELL_MONK_EXPEL_HARM_ALLY_SERPENT = 82379,
+    EXPEL_HARM_SERPENT_ALLY_DECALAGE = 2,      // rang du Serpent - 2 = rang de la variante
 };
 
 // les breuvages du Moine (mod-custom-classes) : Paume au visage réduit leur recharge
@@ -425,7 +428,8 @@ static uint32 SortDeYulon(SpellInfo const* sort)
         case SPELL_MONK_ENVELOPING_MIST:    return SPELL_MONK_ENVELOPING_MIST_HOT + rang;
         case SPELL_MONK_RENEWING_MIST:      return SPELL_MONK_RENEWING_MIST_HOT + rang;
         case SPELL_MONK_EXPEL_HARM:         return SPELL_MONK_EXPEL_HARM_ALLY;
-        case SPELL_MONK_EXPEL_HARM_SERPENT: return SPELL_MONK_EXPEL_HARM_ALLY_SERPENT;
+        case SPELL_MONK_EXPEL_HARM_SERPENT:
+            return SPELL_MONK_EXPEL_HARM_ALLY_SERPENT + (rang > EXPEL_HARM_SERPENT_ALLY_DECALAGE ? rang - EXPEL_HARM_SERPENT_ALLY_DECALAGE : 0);
         default: break;
     }
     if (!Soigne(sort))
@@ -437,7 +441,9 @@ static uint32 SortDeYulon(SpellInfo const* sort)
 }
 
 // Yu'lon refait chaque sort de soin que le Moine lance lui-même (pas un sort déclenché) sur l'allié le plus bas
-// en vie autour d'elle ; le Moine reste le lanceur d'origine (ses bonus de soins)
+// en vie autour d'elle. La copie part du Moine, déclenchée : lancée par Yu'lon, elle perdait les modificateurs de sorts du
+// Moine (un gardien n'en a pas : 68 % au lieu de 75 % sur la Brume de surtension) et l'Extraction du mal, qui se calcule sur
+// l'arme et la puissance d'attaque de son lanceur, ne soignait plus que 9 %. Yu'lon, elle, joue le lancer.
 class monk_weapons_yulon_copy : public PlayerScript
 {
 public:
@@ -464,8 +470,9 @@ public:
         std::vector<Unit*> allies = AlliesBlesses(moine, yulon, YULON_PORTEE, nullptr);
         Unit* cible = allies.empty() ? moine : allies.front();
         copieDeYulon = true;
-        yulon->CastSpell(cible, copie, TRIGGERED_FULL_MASK, nullptr, nullptr, moine->GetGUID());
+        moine->CastSpell(cible, copie, TRIGGERED_FULL_MASK);
         copieDeYulon = false;
+        yulon->HandleEmoteCommand(EMOTE_ONESHOT_SPELL_CAST_OMNI);
         // ses soins périodiques : le montant de chaque tic est fixé à la pose, ramené ici à 75 % (une aura qui vient d'être
         // posée ou rafraîchie par cette copie a toute sa durée)
         if (Aura* aura = cible->GetAura(copie, moine->GetGUID()))
@@ -646,8 +653,12 @@ struct npc_tian_feng_grue : public ScriptedAI
         minuteur = GRUE_PERIODE;
         Player* moine = ObjectAccessor::GetPlayer(*me, moineGuid);
         Unit* cible = ObjectAccessor::GetUnit(*me, cibleGuid);
+        // Poings de fureur de mod-custom-classes : une aura (81198) qui frappe par 81612 et 81613, pas une canalisation que le
+        // cœur connaît ; la grue reste tant que l'une ou l'autre dure
         Spell const* canal = moine ? moine->GetCurrentSpell(CURRENT_CHANNELED_SPELL) : nullptr;
-        if (!moine || !cible || !cible->IsAlive() || !canal || canal->GetSpellInfo()->GetFirstRankSpell()->Id != SPELL_MONK_FISTS_OF_FURY)
+        bool const poings = moine && (moine->HasAura(SPELL_MONK_FISTS_OF_FURY)
+            || (canal && canal->GetSpellInfo()->GetFirstRankSpell()->Id == SPELL_MONK_FISTS_OF_FURY));
+        if (!moine || !cible || !cible->IsAlive() || !poings)
         {
             me->DespawnOrUnsummon();
             return;
