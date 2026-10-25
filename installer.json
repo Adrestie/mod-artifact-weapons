@@ -169,7 +169,7 @@
         },
         {
           "table": "reference_loot_template",
-          "where": "Entry = 84000"
+          "where": "Entry = 84000 AND Item BETWEEN 84100 AND 84134"
         },
         {
           "table": "creature_loot_template",
