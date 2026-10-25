@@ -5492,6 +5492,31 @@
    "rows": []
   },
   {
+   "file": "SpellMissileMotion.dbc",
+   "fields": 5,
+   "text_fields": [
+    1,
+    2
+   ],
+   "client": true,
+   "server": true,
+   "owned_ids": [
+    [
+     84035,
+     84035
+    ]
+   ],
+   "rows": [
+    [
+     84035,
+     "Yu Wu Cloud",
+     "local waveHeight = .6\nlocal wavesPerSec = 3\n\ntransRight = waveHeight * sin(time * wavesPerSec * 360) * ( 1 - progress ) * 2",
+     0,
+     1
+    ]
+   ]
+  },
+  {
    "file": "CreatureModelData.dbc",
    "fields": 28,
    "text_fields": [
@@ -5741,7 +5766,7 @@
      300,
      750,
      6,
-     0,
+     84035,
      0,
      0,
      0,

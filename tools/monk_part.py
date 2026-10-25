@@ -7,7 +7,8 @@ condition classes [10]). Cahier validé par Maitre le 24/10/2026 22:02 UTC (fil 
 <dossier de travail> : les modèles déjà convertis pour 3.3.5 (m2port : port.py puis validate.py) et leurs textures,
 dans les sous-dossiers ported/ (les armes), yulon_final/ (Yu'lon), ported_crane/ (la grue), export/tex/ (les peaux
 choisies et les icônes), pictures/ (les images des quêtes, tools/quest_picture.py), ported_sheilun/ (les modèles de sorts
-portés par m2port : le nuage du Don de Sheilun, le projectile de brume, la lame de vent ; écrits sous Spells/ArtifactWeapons).
+portés par m2port : le nuage du Don de Sheilun, le projectile de brume, la lame de vent ; écrits sous Spells/ArtifactWeapons ;
+le nuage et le projectile réglés pour 3.3.5 par tools/sheilun_tune.py).
 
 Les visuels de sorts (SpellVisual, SpellVisualKit, SpellVisualEffectName) partent des lignes du CLIENT (son patch-Z) :
 c'est lui qui les joue, et ses kits diffèrent de ceux du serveur. Aucun kit d'avant-incantation ni d'incantation emprunté
@@ -72,6 +73,9 @@ KIT_DON_PRE, KIT_DON_CAST, KIT_GRUE = 84035, 84036, 84037
 EFF_NUAGE, EFF_LAMES = 84035, 84036
 VISUAL_IDS = [84035, 84049]
 ANIM_BATTLEROAR = 55                                            # WeaponFlags 0 : l'arme reste en main
+MOTION_NUAGE = 84035                                            # SpellMissileMotion : le projectile du nuage ondule
+MOTION_SCRIPT = ("local waveHeight = .6\nlocal wavesPerSec = 3\n\n"     # le « Snake » du client (121), plus serré : un vol dure
+                 "transRight = waveHeight * sin(time * wavesPerSec * 360) * ( 1 - progress ) * 2")  # 0,2 à 0,6 s
 NUAGE_VITESSE = 20.0                                            # m/s, le projectile du nuage (src/monk_weapons.cpp le lit)
 CLIENT = r"E:\world of warcraft 3.3.5a hd"
 SPELL_BLOCKS = [[84460, 84479], [84920, 84939], [84960, 84999]]
@@ -586,7 +590,9 @@ def visuals():
     orage[3], orage[7], orage[8] = 123, 0, 0                # kit 123 : l'impact de l'Appel de la foudre, tombé du ciel
     grue = sans_animation(8206, VIS_GRUE)
     grue[3], grue[4] = KIT_GRUE, 0
-    rows = [don, missile(VIS_NUAGE, EFF_NUAGE), tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue,
+    nuage = missile(VIS_NUAGE, EFF_NUAGE)
+    nuage[21] = MOTION_NUAGE                                # l'ondulation, sans changer la durée du vol
+    rows = [don, nuage, tonnerre, missile(VIS_LAMES, EFF_LAMES), orage, grue,
             sans_animation(10408, VIS_FUT), sans_animation(58, VIS_MURMURES)]
     names = [[EFF_NUAGE, "monk_soothingmist_missile", "Spells\\ArtifactWeapons\\monk_soothingmist_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)],
              [EFF_LAMES, "wind_chakram_missile", "Spells\\ArtifactWeapons\\wind_chakram_missile.mdx", word(1.0), word(1.0), word(0.01), word(100.0)]]
@@ -731,6 +737,8 @@ def main():
         # plus d'ensemble (25/10) : sa ligne reste déclarée, vide, pour qu'une mise à jour l'enlève (l'installeur ne nettoie
         # que les DBC que le nouveau paquet déclare encore)
         entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [], [[1, 16]], [[ITEMSET, ITEMSET]]),
+        entry("SpellMissileMotion.dbc", "issii", [[MOTION_NUAGE, "Yu Wu Cloud", MOTION_SCRIPT, 0, 1]], [1, 2],
+              [[MOTION_NUAGE, MOTION_NUAGE]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
         entry("CreatureDisplayInfo.dbc", "iiii" + "f" + "i" + "ssss" + "iiiiii", display_rows, [6, 7, 8, 9], [[NPC_YULON, NPC_CLOUD]]),
         entry("SpellVisual.dbc", "i" * 32, vis_rows, [], [VISUAL_IDS]),
