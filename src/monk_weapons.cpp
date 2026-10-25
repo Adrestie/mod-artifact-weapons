@@ -109,6 +109,7 @@ static constexpr uint32 MONK_BREUVAGES[] = {
 static constexpr float YULON_PORTEE     = 40.0f;   // les alliés que Yu'lon soigne, autour d'elle
 static constexpr int32 YULON_PART       = 75;      // % des soins du Moine que font ses copies (Maitre, 25/10/2026 00:13 UTC)
 static constexpr uint32 YULON_ALLURE    = 250;     // ms entre deux recopies des vitesses du Moine
+static constexpr uint32 YULON_ATTENTE   = 3000;    // ms pendant lesquels le soin périodique d'une copie est attendu
 static constexpr float SHAOHAO_PORTEE   = 40.0f;   // les alliés des rebonds, autour de la cible soignée
 static constexpr uint32 SHAOHAO_REBONDS = 2;
 static constexpr uint32 GRUE_PERIODE    = 500;     // ms, une impulsion de Vents croisés
@@ -128,6 +129,17 @@ namespace
     // vrai pendant qu'une copie de Yu'lon se lance : ses soins directs arrivent avant le retour de CastSpell (déclenché,
     // sans temps d'incantation), monk_weapons_yulon_soins les ramène à 75 %
     thread_local bool copieDeYulon = false;
+
+    // les soins périodiques que posent les copies de Yu'lon, à ramener à 75 % quand ils arrivent : la Brume de rénovation
+    // est un projectile (vitesse 30), son soin se pose après le retour de CastSpell
+    struct SoinAttendu
+    {
+        ObjectGuid moine;
+        ObjectGuid cible;
+        uint32 sort;
+        Milliseconds jusqua;
+    };
+    std::vector<SoinAttendu> soinsAttendus;
     std::unordered_map<ObjectGuid, ObjectGuid> yulonDuMoine;          // le Moine -> sa Yu'lon
     std::unordered_map<ObjectGuid, ObjectGuid> cibleDeLaGrue;         // le Moine -> la cible de sa prochaine grue
     std::unordered_map<ObjectGuid, std::vector<ObjectGuid>> nuagesDuMoine;   // le Moine -> ses nuages au sol, du plus ancien au plus récent
@@ -478,31 +490,63 @@ public:
             return;
         std::vector<Unit*> allies = AlliesBlesses(moine, yulon, YULON_PORTEE, nullptr);
         Unit* cible = allies.empty() ? moine : allies.front();
+        // son soin périodique : le montant de chaque tic est fixé à la pose ; monk_weapons_yulon_soins le ramène à 75 % quand
+        // il arrive (tout de suite, ou à l'arrivée du projectile)
+        if (copie.periodique)
+        {
+            std::lock_guard<std::mutex> garde(monkWeaponsLock);
+            soinsAttendus.push_back({ moine->GetGUID(), cible->GetGUID(), copie.periodique, GameTime::GetGameTimeMS() + Milliseconds(YULON_ATTENTE) });
+        }
         copieDeYulon = true;
         moine->CastSpell(cible, copie.lance, TRIGGERED_FULL_MASK);
         copieDeYulon = false;
         yulon->HandleEmoteCommand(EMOTE_ONESHOT_SPELL_CAST_OMNI);
-        // ses soins périodiques : le montant de chaque tic est fixé à la pose, ramené ici à 75 % (une aura qui vient d'être
-        // posée ou rafraîchie par cette copie a toute sa durée)
-        if (Aura* aura = copie.periodique ? cible->GetAura(copie.periodique, moine->GetGUID()) : nullptr)
-            if (aura->GetDuration() == aura->GetMaxDuration())
-                for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
-                    if (AuraEffect* effet = aura->GetEffect(i))
-                        if (effet->GetAuraType() == SPELL_AURA_PERIODIC_HEAL)
-                            effet->ChangeAmount(CalculatePct(effet->GetAmount(), YULON_PART));
     }
 };
 
-// les soins directs d'une copie de Yu'lon : 75 % de ceux du Moine
+// les soins d'une copie de Yu'lon : 75 % de ceux du Moine. Les directs pendant la copie ; les périodiques à leur pose,
+// d'après soinsAttendus. Les rebonds de la Brume de rénovation, que son script refait à chaque tic avec le Moine pour
+// lanceur, ne se distinguent plus des siens : ils restent à 100 %.
 class monk_weapons_yulon_soins : public UnitScript
 {
 public:
-    monk_weapons_yulon_soins() : UnitScript("monk_weapons_yulon_soins", true, { UNITHOOK_MODIFY_HEAL_RECEIVED }) { }
+    monk_weapons_yulon_soins() : UnitScript("monk_weapons_yulon_soins", true, { UNITHOOK_MODIFY_HEAL_RECEIVED, UNITHOOK_ON_AURA_APPLY }) { }
 
     void ModifyHealReceived(Unit* /*cible*/, Unit* /*lanceur*/, uint32& soin, SpellInfo const* /*sort*/) override
     {
         if (copieDeYulon)
             soin = CalculatePct(soin, YULON_PART);
+    }
+
+    void OnAuraApply(Unit* cible, Aura* aura) override
+    {
+        if (!cible || !aura)
+            return;
+        Milliseconds const maintenant = GameTime::GetGameTimeMS();
+        bool trouve = false;
+        {
+            std::lock_guard<std::mutex> garde(monkWeaponsLock);
+            if (soinsAttendus.empty())
+                return;
+            for (auto it = soinsAttendus.begin(); it != soinsAttendus.end();)
+            {
+                if (it->jusqua < maintenant)
+                    it = soinsAttendus.erase(it);
+                else if (!trouve && it->sort == aura->GetId() && it->moine == aura->GetCasterGUID() && it->cible == cible->GetGUID())
+                {
+                    trouve = true;
+                    it = soinsAttendus.erase(it);
+                }
+                else
+                    ++it;
+            }
+        }
+        if (!trouve)
+            return;
+        for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+            if (AuraEffect* effet = aura->GetEffect(i))
+                if (effet->GetAuraType() == SPELL_AURA_PERIODIC_HEAL)
+                    effet->ChangeAmount(CalculatePct(effet->GetAmount(), YULON_PART));
     }
 };
 
@@ -595,10 +639,20 @@ public:
             cible = moine->GetSelectedUnit();
         if (!cible || !moine->IsValidAttackTarget(cible))
         {
+            // NearestAttackableUnitInObjectRangeCheck ne prend qu'un ennemi hostile ou déjà en combat : un mannequin neutre
+            // lui échappait. Tout ce que le Moine peut attaquer, le plus proche
             cible = nullptr;
-            Acore::NearestAttackableUnitInObjectRangeCheck check(moine, moine, GRUE_PORTEE);
-            Acore::UnitLastSearcher<Acore::NearestAttackableUnitInObjectRangeCheck> searcher(moine, cible, check);
-            Cell::VisitObjects(moine, searcher, GRUE_PORTEE);
+            std::list<Unit*> autour;
+            Acore::AnyUnfriendlyUnitInObjectRangeCheck verif(moine, moine, GRUE_PORTEE);
+            Acore::UnitListSearcher<Acore::AnyUnfriendlyUnitInObjectRangeCheck> chercheur(moine, autour, verif);
+            Cell::VisitObjects(moine, chercheur, GRUE_PORTEE);
+            float plusPres = GRUE_PORTEE + 1.0f;
+            for (Unit* u : autour)
+                if (u->IsAlive() && moine->IsValidAttackTarget(u) && moine->GetDistance(u) < plusPres)
+                {
+                    plusPres = moine->GetDistance(u);
+                    cible = u;
+                }
         }
         if (!cible)
             return;
