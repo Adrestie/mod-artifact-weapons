@@ -75,6 +75,9 @@ VIS_DON, VIS_NUAGE, VIS_TONNERRE, VIS_LAMES, VIS_ORAGE, VIS_GRUE, VIS_FUT, VIS_M
 KIT_DON_PRE, KIT_DON_CAST, KIT_GRUE, KIT_FUT_PRE, KIT_FUT_CAST = 84035, 84036, 84037, 84038, 84039
 KIT_MURMURES = 84040                                            # le fil de la Brume apaisante, d'un maillon au suivant
 KIT_BRUME_CANAL = 81139                                         # la canalisation de la Brume apaisante (mod-custom-classes) : ses chaînes
+CHAINE_MURMURES = 84035                                         # SpellChainEffects : le fil de Murmures
+CHAINE_MODELE = 736                                             # celle du Salve de guérison (3.3.5)
+CHAINE_TEXTURE = "Spells\\CustomClassesSpells\\beam_mist_filled_medium_01.blp"   # le fil de brume de MoP (mod-custom-classes)
 EFF_NUAGE, EFF_LAMES = 84035, 84036
 VISUAL_IDS = [84035, 84049]
 # Les animations du Moine de MoP (Maitre, 25/10/2026 11:50 UTC) : le Don joue celles de l'Élévation (52 puis 54, que la
@@ -582,6 +585,13 @@ def client_rows(name):
     return _CLIENT_DBC[name]
 
 
+def chaine_murmures():
+    """la SpellChainEffects du fil de Murmures : celle du Salve de guérison, la texture du fil de brume"""
+    row = list(client_rows("SpellChainEffects.dbc")[CHAINE_MODELE])
+    row[0], row[7] = CHAINE_MURMURES, CHAINE_TEXTURE
+    return row
+
+
 def word(v):
     return struct.unpack("<i", struct.pack("<f", v))[0]
 
@@ -628,11 +638,20 @@ def visuals():
     fut = sans_animation(10408, VIS_FUT)
     fut[1], fut[2] = KIT_FUT_PRE, KIT_FUT_CAST
     # le rebond de Murmures : lancé par le maillon précédent (src/monk_weapons.cpp), son kit d'incantation est celui de la
-    # canalisation de la Brume apaisante sans son animation : ses procédures 0 (chaînes 81100 à 81102, comme le kit
-    # d'incantation 3169 du Salve de guérison) tracent le fil du lanceur à la cible
+    # canalisation de la Brume apaisante sans son animation : sa procédure 0 (une chaîne, comme le kit d'incantation 3169
+    # du Salve de guérison) trace le fil du lanceur à la cible
     chaine = list(KIT[KIT_BRUME_CANAL])
     chaine[0], chaine[1], chaine[2] = KIT_MURMURES, -1, -1
     chaine[15] = 0                                         # sans le son en boucle de la canalisation (rejoué à chaque tic)
+    # une seule chaîne, à nous : celle du Salve de guérison (736, valeurs de 3.3.5 : segments de 0,3, largeur 0,2,
+    # SegDuration 999 ms) avec la texture du fil de brume. Les trois de la canalisation (81100 à 81102, portées de MoP par
+    # mod-custom-classes) sont faites pour un kit qui tourne en continu, et leurs derniers champs portent des valeurs
+    # aberrantes (-5,9e20, -6,1e29, 2,4e16) : rejouées chaque seconde dans un kit d'incantation, elles s'empilaient en
+    # éventail et leurs sommets s'écartaient avec le temps (Maitre, 25/10/2026 16:33 et 16:34 UTC)
+    chaine[17:21] = [0, -1, -1, -1]                        # CharProc : la procédure 0 (chaîne) au premier emplacement seul
+    chaine[21:25] = [word(float(CHAINE_MURMURES)), 0, 0, 0]  # CharParamZero : sa SpellChainEffects
+    for k in (25, 29, 33):                                 # CharParamOne à Three : ceux des emplacements vidés
+        chaine[k + 1:k + 4] = [0, 0, 0]
     kits.append(chaine)
     murmures = sans_animation(58, VIS_MURMURES)
     murmures[2] = KIT_MURMURES
@@ -781,6 +800,7 @@ def main():
         # que les DBC que le nouveau paquet déclare encore)
         entry("ItemSet.dbc", "i" + "s" * 16 + "i" + "i" * 17 + "i" * 8 + "i" * 8 + "ii", [], [[1, 16]], [[ITEMSET, ITEMSET]]),
         entry("AnimationData.dbc", "isiiiiii", ANIM_ROWS, [1], [[ANIM_FUT_PRE, ANIM_DON_REPLI], [ANIM_DON, ANIM_DON]]),
+        entry("SpellChainEffects.dbc", "i" * 7 + "s" + "i" * 40, [chaine_murmures()], [7], [[CHAINE_MURMURES, CHAINE_MURMURES]]),
         entry("SpellMissileMotion.dbc", "issii", [[MOTION_NUAGE, "Yu Wu Cloud", MOTION_SCRIPT, 0, 1]], [1, 2],
               [[MOTION_NUAGE, MOTION_NUAGE]]),
         entry("CreatureModelData.dbc", "iisifii" + "fff" + "iiii" + "fff" + "ffffff" + "fffff", model_rows, [2], [[NPC_YULON, NPC_CLOUD]]),
