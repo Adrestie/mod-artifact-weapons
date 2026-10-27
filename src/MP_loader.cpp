@@ -8,13 +8,11 @@
 
 // From SC
 void SC_AddPapotaSpellScripts();
-void SC_AddMonkWeaponScripts();
 void AddSC_artifact_weapons_commandscript();
 
 // Add all
 void Addmod_artifact_weaponsScripts()
 {
     SC_AddPapotaSpellScripts();
-    SC_AddMonkWeaponScripts();
     AddSC_artifact_weapons_commandscript();
 }

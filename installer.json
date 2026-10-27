@@ -4,8 +4,7 @@
   "title": "Artifact weapons",
   "fields": {"game": "required", "worldserver": "required", "sources": "required", "mysql": "required"},
   "signature": ["src/papota_spells.cpp", "src/MP_loader.cpp"],
-  "exclude_from_sources": ["data/client", "data/client-surcharges", "data/dbc", "data/parts", "tools"],
-  "parts": [{"name": "monk", "title": "Artifact weapons: Monk", "requires": {"classes": [10]}, "folder": "data/parts/monk"}],
+  "exclude_from_sources": ["data/client", "data/client-surcharges", "data/dbc", "tools"],
   "dbc": [
     {
       "file": "Item.dbc",

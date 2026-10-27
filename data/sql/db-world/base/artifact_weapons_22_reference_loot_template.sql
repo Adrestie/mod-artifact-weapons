@@ -1,6 +1,5 @@
 -- Extrait de acore_world_hard.reference_loot_template, tel quel, le 2026-09-28.
--- Clause : Entry = 84000 AND Item BETWEEN 84100 AND 84134 (les objets de ce fichier ; 84135 à 84138, ceux du Moine,
--- sont à la partie « monk », installée seulement avec mod-custom-classes : ce fichier ne doit pas les effacer)
+-- Clause : Entry = 84000 AND Item BETWEEN 84100 AND 84134 (les objets de ce fichier)
 DELETE FROM `reference_loot_template` WHERE Entry = 84000 AND Item BETWEEN 84100 AND 84134;
 INSERT INTO `reference_loot_template` (`Entry`, `Item`, `Reference`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES (84000,84102,0,3.125,0,1,0,1,1,'');
 INSERT INTO `reference_loot_template` (`Entry`, `Item`, `Reference`, `Chance`, `QuestRequired`, `LootMode`, `GroupId`, `MinCount`, `MaxCount`, `Comment`) VALUES (84000,84103,0,3.125,0,1,0,1,1,'');
