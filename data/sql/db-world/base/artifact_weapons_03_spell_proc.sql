@@ -1,6 +1,6 @@
 -- Extrait de acore_world_hard.spell_proc, tel quel, le 2026-09-28.
 -- Clause : ABS(SpellId) BETWEEN 84300 AND 84999
-DELETE FROM `spell_proc` WHERE (ABS(SpellId) BETWEEN 84300 AND 84459 OR ABS(SpellId) BETWEEN 84480 AND 84919 OR ABS(SpellId) BETWEEN 84940 AND 84959);
+DELETE FROM `spell_proc` WHERE ABS(SpellId) BETWEEN 84300 AND 84999;
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES (84301,0,0,0,0,0,65536,7,2,0,0,0,0,100,1500,0);
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES (84304,0,0,0,0,0,65536,7,2,0,0,0,0,100,68000,0);
 INSERT INTO `spell_proc` (`SpellId`, `SchoolMask`, `SpellFamilyName`, `SpellFamilyMask0`, `SpellFamilyMask1`, `SpellFamilyMask2`, `ProcFlags`, `SpellTypeMask`, `SpellPhaseMask`, `HitMask`, `AttributesMask`, `DisableEffectsMask`, `ProcsPerMinute`, `Chance`, `Cooldown`, `Charges`) VALUES (84320,0,0,0,0,0,17408,2,2,0,0,0,0,100,0,0);

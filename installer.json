@@ -88,31 +88,31 @@
         },
         {
           "table": "spell_dbc",
-          "where": "(ID BETWEEN 84300 AND 84459 OR ID BETWEEN 84480 AND 84919 OR ID BETWEEN 84940 AND 84959)"
+          "where": "ID BETWEEN 84300 AND 84999"
         },
         {
           "table": "spell_proc",
-          "where": "(ABS(SpellId) BETWEEN 84300 AND 84459 OR ABS(SpellId) BETWEEN 84480 AND 84919 OR ABS(SpellId) BETWEEN 84940 AND 84959)"
+          "where": "ABS(SpellId) BETWEEN 84300 AND 84999"
         },
         {
           "table": "spell_bonus_data",
-          "where": "(entry BETWEEN 84300 AND 84459 OR entry BETWEEN 84480 AND 84919 OR entry BETWEEN 84940 AND 84959)"
+          "where": "entry BETWEEN 84300 AND 84999"
         },
         {
           "table": "spell_custom_attr",
-          "where": "(spell_id BETWEEN 84300 AND 84459 OR spell_id BETWEEN 84480 AND 84919 OR spell_id BETWEEN 84940 AND 84959)"
+          "where": "spell_id BETWEEN 84300 AND 84999"
         },
         {
           "table": "spell_script_names",
-          "where": "(ABS(spell_id) BETWEEN 84300 AND 84459 OR ABS(spell_id) BETWEEN 84480 AND 84919 OR ABS(spell_id) BETWEEN 84940 AND 84959)"
+          "where": "ABS(spell_id) BETWEEN 84300 AND 84999"
         },
         {
           "table": "spell_cooldown_overrides",
-          "where": "(Id BETWEEN 84300 AND 84459 OR Id BETWEEN 84480 AND 84919 OR Id BETWEEN 84940 AND 84959)"
+          "where": "Id BETWEEN 84300 AND 84999"
         },
         {
           "table": "spell_jump_distance",
-          "where": "(ID BETWEEN 84300 AND 84459 OR ID BETWEEN 84480 AND 84919 OR ID BETWEEN 84940 AND 84959)"
+          "where": "ID BETWEEN 84300 AND 84999"
         },
         {
           "table": "creature_template",
@@ -168,7 +168,7 @@
         },
         {
           "table": "reference_loot_template",
-          "where": "Entry = 84000 AND Item BETWEEN 84100 AND 84134"
+          "where": "Entry = 84000"
         },
         {
           "table": "creature_loot_template",
